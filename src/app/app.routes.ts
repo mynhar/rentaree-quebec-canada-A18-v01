@@ -29,6 +29,14 @@ export const routes: Routes = [
         (m) => m.QuebecCityComponent,
       ),
   },
+  {
+    path: 'quebec-city/nueva',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/properties/property-form/property-form.component').then(
+        (m) => m.PropertyFormComponent,
+      ),
+  },
 
   // --- Rutas de fases futuras ---
   // {
