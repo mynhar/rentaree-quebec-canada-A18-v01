@@ -6,32 +6,31 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 
 // Se muestra tras el primer login con Google (que no entrega teléfono).
 @Component({
   selector: 'app-complete-profile',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TranslocoDirective],
   template: `
-    <main class="wrap">
+    <main class="wrap" *transloco="let t">
       <div class="card">
-        <h1>Completa tu perfil</h1>
-        <p class="lead">
-          Necesitamos tu teléfono para publicar propiedades y coordinar las visitas de escaneo.
-        </p>
+        <h1>{{ t('profile.complete.title') }}</h1>
+        <p class="lead">{{ t('profile.complete.lead') }}</p>
         <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
           <div class="field">
-            <label for="phone">Teléfono</label>
+            <label for="phone">{{ t('profile.complete.phone') }}</label>
             <input id="phone" class="input" type="tel" autocomplete="tel"
               placeholder="(514) 555-0142" formControlName="phone"
               [class.is-invalid]="invalid" />
             @if (invalid) {
-              <small class="hint">Ingresa un teléfono válido.</small>
+              <small class="hint">{{ t('profile.complete.hint') }}</small>
             }
           </div>
           <button class="btn btn--primary btn--block" type="submit" [disabled]="busy()">
-            {{ busy() ? 'Guardando…' : 'Guardar y continuar' }}
+            {{ busy() ? t('common.saving') : t('profile.complete.submit') }}
           </button>
         </form>
       </div>

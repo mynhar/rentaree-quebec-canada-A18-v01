@@ -79,6 +79,37 @@ Tokens live in [src/styles.css](src/styles.css). **Always use them; never invent
   high-contrast serif + terracotta accent, purple gradients, and emoji-as-icons.
 - Reusable classes already defined: `.btn`, `.btn--primary`, `.btn--ghost`, `.btn--block`, `.input`.
 
+## i18n (trilingual: FR default, EN, ES)
+
+Transloco (`@jsverse/transloco`), configured in [app.config.ts](src/app/app.config.ts). **French is the
+default and the fallback** — in Quebec that is a legal matter, not a preference. Translations live in
+`src/assets/i18n/{fr,en,es}.json` (registered as an assets folder in `angular.json`; the project also
+serves `public/`).
+
+- **Never hard-code a user-visible string.** Templates wrap in `*transloco="let t"` and call `t('key')`.
+  Where `t` collides with a loop variable, the alias is `tr`.
+- **Store keys in signals, never translated text.** A translated string put in a signal freezes in the
+  language it was built in and won't follow a language change. The convention is `errorKey` (a key) plus
+  `errorText` (a raw Supabase message with no key of its own, shown as-is). Same for
+  `geoMsg` / rejected photos: `{ key, params }`.
+- Labels that live in TypeScript are keys too: `PROPERTY_TYPES`/`CA_PROVINCES` carry `labelKey`
+  ([constants.ts](src/app/core/config/constants.ts)), plus the `propertyTypeKey()` and `scanStatusKey()`
+  helpers. `computed()` in a component returns the **key**; the template translates it.
+- Language resolution order ([language.service.ts](src/app/core/i18n/language.service.ts)): `localStorage`
+  → browser language if `en`/`es` → `fr`. The profile's `profiles.language` is applied later, on login, by
+  `AuthService.loadProfile()` — the profile isn't known before then. `LanguageService` must not inject
+  `AuthService` (circular); it reads the user from the Supabase session to persist.
+- **Money and dates follow the active language.** `activeLocale` in [format.ts](src/app/core/util/format.ts)
+  is a *signal* on purpose: `computed()`s calling `formatCAD()`/`formatDate()` recompute on a language
+  change, so card prices and map pins re-format without a reload. Currency is always CAD; the locale
+  (`fr-CA`/`en-CA`/`es-CA`) is what changes.
+- Missing keys fall back to French rather than rendering the raw key (`useFallbackTranslation`), so a
+  missing translation is easy to miss — after adding keys, add them to **all three** files.
+
+**Adding a key:** pick a semantic path (`property.form.postalCode`, never a number or the Spanish text),
+add it to `fr.json`, `en.json` and `es.json`, and use `t('…')` in the template. To verify nothing is
+missing, extract every `t('…')` literal from `src/app` and check it resolves in all three JSON files.
+
 ## Quebec market
 
 - Prices in **CAD**, Canadian formatting (`1 650 $`) — use `formatCAD()` from `core/util/format.ts`.
@@ -90,7 +121,7 @@ Tokens live in [src/styles.css](src/styles.css). **Always use them; never invent
 - **Standalone components only.** Templates and styles are written inline in the `@Component` decorator. Use Angular control-flow syntax (`@if`, `@for`, `@switch`), not `*ngIf`/`*ngFor`.
 - **Signals over RxJS for component/service state.** Use `inject()`, not constructor DI. Use `input()`/`output()`, not the `@Input()`/`@Output()` decorators.
 - Reactive forms. For `disabled` controls, read with `getRawValue()` — `.value` omits them.
-- **Domain language is Spanish, UI labels for Quebec/Canada are French** ([core/config/constants.ts](src/app/core/config/constants.ts): province names in French, roles/types in Spanish). Method and variable names are frequently Spanish (`salir`, `busy`). Match the surrounding language when editing a file.
+- **The UI is trilingual (see i18n below); the code is Spanish.** Identifiers, comments, route paths (`/completar-perfil`, `/escaner`) and DB enum values (`cliente`, `disponible`) stay in Spanish. Match the surrounding language when editing a file — but never hard-code a user-visible string.
 - The app was built in numbered phases ("Fase 1…8"); some comments still reference them.
 
 ## Supabase
@@ -102,12 +133,21 @@ Storage buckets: `property-photos`, `property-videos`, `floor-plans`.
 
 ## Roadmap
 
-Each of these is already specced in [prompts-claude-code.md](prompts-claude-code.md); read the relevant
-section there before starting one. They are ordered on purpose — the i18n pass touches every template, so
-it wants the rest to be stable first.
+The three features that were specced in `prompts-claude-code.md` are all shipped (that file was deleted
+from the working tree; recover it with `git show HEAD:prompts-claude-code.md` if you need the original
+briefs):
 
-1. **Photo upload** to Supabase Storage (`property-photos`), recorded in `property_media` with
-   `media_type='photo'` and `sort_order`. Until this exists, cards fall back to a line-drawing placeholder.
-2. **i18n to French** (FR default + EN). In Quebec, French is the default language of commerce by law —
-   this is not cosmetic. Decide Angular i18n vs Transloco before implementing.
-3. **Editing existing properties** (owner edits their own; admin edits any).
+1. ~~**Photo upload**~~ — [photo-picker.component.ts](src/app/features/properties/shared/photo-picker.component.ts).
+2. ~~**i18n**~~ — Transloco, trilingual FR/EN/ES (see the i18n section above).
+3. ~~**Editing properties**~~ — see below.
+
+**Editing** reuses the *same* [property-form.component.ts](src/app/features/properties/property-form/property-form.component.ts)
+rather than duplicating it: route `/propiedad/:id/editar` binds `id` (via `withComponentInputBinding`), and
+`isEdit()` is simply `!!id()`. In edit mode the form preloads the property, shows the `expediente` read-only
+(the DB trigger owns it), exposes `status` so an owner can pull a listing off the market, hides the scan
+request (that lives in the scanner panel afterwards), and submits `update()` instead of `create()`.
+
+`canEditProperty()` in [property.service.ts](src/app/features/properties/property.service.ts) is a **mirror of
+the `properties_update` RLS policy, used only to show or hide the Edit button** — the database is what
+actually authorizes. Verified against the live DB: the owner's update touches 1 row; a non-owner
+non-admin's update touches 0.

@@ -1,32 +1,29 @@
-import { CaProvince, PropertyType } from '../models/database.types';
+import { CaProvince, PropertyStatus, PropertyType } from '../models/database.types';
 
 // Provincias y territorios de Canadá (QC primero, es el predeterminado).
-export const CA_PROVINCES: { code: CaProvince; name: string }[] = [
-  { code: 'QC', name: 'Québec' },
-  { code: 'ON', name: 'Ontario' },
-  { code: 'BC', name: 'Colombie-Britannique' },
-  { code: 'AB', name: 'Alberta' },
-  { code: 'MB', name: 'Manitoba' },
-  { code: 'SK', name: 'Saskatchewan' },
-  { code: 'NS', name: 'Nouvelle-Écosse' },
-  { code: 'NB', name: 'Nouveau-Brunswick' },
-  { code: 'NL', name: 'Terre-Neuve-et-Labrador' },
-  { code: 'PE', name: 'Île-du-Prince-Édouard' },
-  { code: 'NT', name: 'Territoires du Nord-Ouest' },
-  { code: 'YT', name: 'Yukon' },
-  { code: 'NU', name: 'Nunavut' },
+// Los nombres viven en los JSON de i18n: aquí solo va la clave.
+export const CA_PROVINCES: { code: CaProvince; labelKey: string }[] = [
+  'QC', 'ON', 'BC', 'AB', 'MB', 'SK', 'NS',
+  'NB', 'NL', 'PE', 'NT', 'YT', 'NU',
+].map((code) => ({ code: code as CaProvince, labelKey: `provinces.${code}` }));
+
+// Tipos de propiedad. La etiqueta se traduce; el valor es el del enum de la base.
+export const PROPERTY_TYPES: { value: PropertyType; labelKey: string }[] = [
+  'cuarto', 'casa', 'apartamento', 'edificio', 'comercial', 'condominio', 'otro',
+].map((value) => ({ value: value as PropertyType, labelKey: `property.types.${value}` }));
+
+// Estados de una propiedad. El dueño la retira del mercado cambiando de estado.
+export const PROPERTY_STATUSES: PropertyStatus[] = [
+  'borrador',
+  'disponible',
+  'alquilada',
+  'inactiva',
 ];
 
-// Tipos de propiedad.
-export const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
-  { value: 'cuarto', label: 'Cuarto' },
-  { value: 'casa', label: 'Casa' },
-  { value: 'apartamento', label: 'Apartamento' },
-  { value: 'edificio', label: 'Edificio' },
-  { value: 'comercial', label: 'Comercial' },
-  { value: 'condominio', label: 'Condominio' },
-  { value: 'otro', label: 'Otro' },
-];
+/** Clave de traducción del tipo de una propiedad. */
+export function propertyTypeKey(type: PropertyType): string {
+  return `property.types.${type}`;
+}
 
 // Coordenadas de respaldo para centrar el mapa si no hay geolocalización.
 export const DEFAULT_MAP_CENTER = { lat: 45.5019, lng: -73.5674 }; // Montréal

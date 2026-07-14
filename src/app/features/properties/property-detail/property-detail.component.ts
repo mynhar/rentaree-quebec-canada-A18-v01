@@ -1,8 +1,10 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { PropertyService, PropertyDetail } from '../property.service';
+import { TranslocoDirective } from '@jsverse/transloco';
+import { AuthService } from '../../../core/auth/auth.service';
+import { PropertyService, PropertyDetail, canEditProperty } from '../property.service';
 import { SafeTourUrlPipe } from '../../../core/util/safe-url.pipe';
-import { PROPERTY_TYPES } from '../../../core/config/constants';
+import { propertyTypeKey } from '../../../core/config/constants';
 import { buildAddress, formatCAD } from '../../../core/util/format';
 
 type Tab = 'fotos' | 'tour' | 'plano';
@@ -10,19 +12,20 @@ type Tab = 'fotos' | 'tour' | 'plano';
 @Component({
   selector: 'app-property-detail',
   standalone: true,
-  imports: [RouterLink, SafeTourUrlPipe],
+  imports: [RouterLink, SafeTourUrlPipe, TranslocoDirective],
   template: `
+    <ng-container *transloco="let tr">
     <header class="bar">
-      <a routerLink="/quebec-city" class="back">← Volver</a>
+      <a routerLink="/quebec-city" class="back">{{ tr('common.back') }}</a>
       <span class="mark">Rentaree<span class="mark__tick" aria-hidden="true"></span></span>
     </header>
 
     @if (loading()) {
-      <p class="state">Cargando propiedad…</p>
+      <p class="state">{{ tr('property.detail.loading') }}</p>
     } @else if (!property()) {
       <div class="state">
-        <p class="state__title">Propiedad no encontrada</p>
-        <a routerLink="/quebec-city">Volver a las propiedades</a>
+        <p class="state__title">{{ tr('property.detail.notFoundTitle') }}</p>
+        <a routerLink="/quebec-city">{{ tr('property.detail.notFoundBack') }}</a>
       </div>
     } @else {
       @let p = property()!;
@@ -32,31 +35,36 @@ type Tab = 'fotos' | 'tour' | 'plano';
         <section class="head">
           <div>
             <p class="exp">{{ p.expediente }}</p>
-            <h1>{{ p.title || typeLabel() }}</h1>
+            <h1>{{ p.title || tr(typeKey()) }}</h1>
             <p class="addr">{{ address() }}@if (p.neighbourhood) { · {{ p.neighbourhood }} }</p>
           </div>
           <div class="price">
             <span class="price__v">{{ price() }}</span>
-            <span class="price__u">/mois</span>
+            <span class="price__u">{{ tr('property.perMonth') }}</span>
+            @if (canEdit()) {
+              <a class="btn btn--ghost edit" [routerLink]="['/propiedad', p.id, 'editar']">
+                {{ tr('property.detail.edit') }}
+              </a>
+            }
           </div>
         </section>
 
         <!-- Datos rápidos -->
         <section class="facts">
           <div class="fact">
-            <span class="fact__k">Tipo</span>
-            <span class="fact__v">{{ typeLabel() }}</span>
+            <span class="fact__k">{{ tr('property.detail.facts.type') }}</span>
+            <span class="fact__v">{{ tr(typeKey()) }}</span>
           </div>
           <div class="fact">
-            <span class="fact__k">Superficie</span>
+            <span class="fact__k">{{ tr('property.detail.facts.area') }}</span>
             <span class="fact__v">{{ p.area != null ? p.area + ' ' + p.area_unit : '—' }}</span>
           </div>
           <div class="fact">
-            <span class="fact__k">Camas</span>
+            <span class="fact__k">{{ tr('property.detail.facts.bedrooms') }}</span>
             <span class="fact__v">{{ p.bedrooms ?? '—' }}</span>
           </div>
           <div class="fact">
-            <span class="fact__k">Baños</span>
+            <span class="fact__k">{{ tr('property.detail.facts.bathrooms') }}</span>
             <span class="fact__v">{{ p.bathrooms ?? '—' }}</span>
           </div>
         </section>
@@ -66,33 +74,38 @@ type Tab = 'fotos' | 'tour' | 'plano';
           <div class="seg">
             <button [class.on]="tab() === 'fotos'" (click)="tab.set('fotos')"
               [disabled]="photos().length === 0">
-              Fotos @if (photos().length) { <span class="n">{{ photos().length }}</span> }
+              {{ tr('property.detail.tabs.photos') }}
+              @if (photos().length) { <span class="n">{{ photos().length }}</span> }
             </button>
             <button [class.on]="tab() === 'tour'" (click)="tab.set('tour')" [disabled]="!tourUrl()">
-              Recorrido 3D
+              {{ tr('property.detail.tabs.tour') }}
             </button>
             <button [class.on]="tab() === 'plano'" (click)="tab.set('plano')" [disabled]="!planUrl()">
-              Plano
+              {{ tr('property.detail.tabs.plan') }}
             </button>
           </div>
 
           <div class="stage">
             @switch (tab()) {
               @case ('tour') {
-                @if (tourUrl(); as t) {
-                  <iframe [src]="t | safeTourUrl" title="Recorrido 3D de la propiedad"
+                @if (tourUrl(); as tour) {
+                  <iframe [src]="tour | safeTourUrl" [title]="tr('property.detail.tourTitle')"
                     allow="xr-spatial-tracking; fullscreen" allowfullscreen loading="lazy"></iframe>
                 }
               }
               @case ('plano') {
-                @if (planUrl(); as pl) { <img [src]="pl" alt="Plano de la propiedad" class="plan" /> }
+                @if (planUrl(); as pl) {
+                  <img [src]="pl" [alt]="tr('property.detail.planAlt')" class="plan" />
+                }
               }
               @default {
                 @if (photos().length) {
-                  <img [src]="photos()[photoIndex()]" alt="Foto de la propiedad" class="photo" />
+                  <img [src]="photos()[photoIndex()]" [alt]="tr('property.detail.photoAlt')" class="photo" />
                   @if (photos().length > 1) {
-                    <button class="nav nav--prev" (click)="prevPhoto()" aria-label="Foto anterior">‹</button>
-                    <button class="nav nav--next" (click)="nextPhoto()" aria-label="Foto siguiente">›</button>
+                    <button class="nav nav--prev" (click)="prevPhoto()"
+                      [attr.aria-label]="tr('property.detail.prevPhoto')">‹</button>
+                    <button class="nav nav--next" (click)="nextPhoto()"
+                      [attr.aria-label]="tr('property.detail.nextPhoto')">›</button>
                     <span class="counter">{{ photoIndex() + 1 }} / {{ photos().length }}</span>
                   }
                 } @else {
@@ -102,7 +115,7 @@ type Tab = 'fotos' | 'tour' | 'plano';
                       <line x1="110" y1="20" x2="110" y2="74" stroke="#C4C7C1" stroke-width="1.5"/>
                       <line x1="110" y1="74" x2="180" y2="74" stroke="#C4C7C1" stroke-width="1.5"/>
                     </svg>
-                    <p>Esta propiedad aún no tiene escaneo 3D.</p>
+                    <p>{{ tr('property.detail.noScan') }}</p>
                   </div>
                 }
               }
@@ -115,13 +128,18 @@ type Tab = 'fotos' | 'tour' | 'plano';
             <!-- Dimensiones (del escaneo 3D) -->
             <section class="block">
               <div class="block__head">
-                <h2>Dimensiones</h2>
-                <p>Medidas extraídas del escaneo 3D.</p>
+                <h2>{{ tr('property.detail.dimensions.title') }}</h2>
+                <p>{{ tr('property.detail.dimensions.lead') }}</p>
               </div>
               @if (p.property_dimensions.length) {
                 <table class="dims">
                   <thead>
-                    <tr><th>Ambiente</th><th>Ancho</th><th>Largo</th><th>Superficie</th></tr>
+                    <tr>
+                      <th>{{ tr('property.detail.dimensions.room') }}</th>
+                      <th>{{ tr('property.detail.dimensions.width') }}</th>
+                      <th>{{ tr('property.detail.dimensions.length') }}</th>
+                      <th>{{ tr('property.detail.dimensions.area') }}</th>
+                    </tr>
                   </thead>
                   <tbody>
                     @for (d of p.property_dimensions; track d.id) {
@@ -135,13 +153,13 @@ type Tab = 'fotos' | 'tour' | 'plano';
                   </tbody>
                 </table>
               } @else {
-                <p class="muted">Aún no se han registrado las dimensiones de esta propiedad.</p>
+                <p class="muted">{{ tr('property.detail.dimensions.empty') }}</p>
               }
             </section>
 
             @if (p.description) {
               <section class="block">
-                <div class="block__head"><h2>Descripción</h2></div>
+                <div class="block__head"><h2>{{ tr('property.detail.description') }}</h2></div>
                 <p class="desc">{{ p.description }}</p>
               </section>
             }
@@ -149,19 +167,22 @@ type Tab = 'fotos' | 'tour' | 'plano';
 
           <!-- Contacto -->
           <aside class="contact">
-            <p class="contact__k">Contacto</p>
+            <p class="contact__k">{{ tr('property.detail.contact.title') }}</p>
             <p class="contact__name">{{ p.contact_first_name }} {{ p.contact_last_name }}</p>
             <a class="btn btn--primary btn--block" [href]="'tel:' + p.contact_phone">
               {{ p.contact_phone }}
             </a>
             <a class="btn btn--ghost btn--block" [href]="'mailto:' + p.contact_email">
-              Enviar correo
+              {{ tr('property.detail.contact.email') }}
             </a>
-            <p class="contact__note">Menciona el expediente {{ p.expediente }} al escribir.</p>
+            <p class="contact__note">
+              {{ tr('property.detail.contact.note', { expediente: p.expediente }) }}
+            </p>
           </aside>
         </div>
       </main>
     }
+    </ng-container>
   `,
   styles: [`
     :host { display: block; min-height: 100dvh; }
@@ -182,6 +203,7 @@ type Tab = 'fotos' | 'tour' | 'plano';
     .price { text-align: right; white-space: nowrap; }
     .price__v { font-family: var(--font-mono); font-size: 24px; font-weight: 700; }
     .price__u { color: var(--ink-3); font-size: 13px; }
+    .edit { display: flex; margin-top: 10px; padding: 7px 14px; font-size: 13.5px; }
 
     .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; margin: 24px 0; }
     .fact { background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 3px; }
@@ -238,9 +260,15 @@ type Tab = 'fotos' | 'tour' | 'plano';
 })
 export class PropertyDetailComponent implements OnInit {
   private readonly svc = inject(PropertyService);
+  private readonly auth = inject(AuthService);
 
   /** Viene de la ruta /propiedad/:id (withComponentInputBinding). */
   readonly id = input.required<string>();
+
+  /** Espejo de la política RLS: solo decide si se ve el botón de editar. */
+  readonly canEdit = computed(() =>
+    canEditProperty(this.property(), this.auth.session()?.user?.id ?? null, this.auth.role()),
+  );
 
   readonly property = signal<PropertyDetail | null>(null);
   readonly loading = signal(true);
@@ -272,9 +300,11 @@ export class PropertyDetailComponent implements OnInit {
     const p = this.property();
     return p ? buildAddress(p) : '';
   });
-  readonly typeLabel = computed(
-    () => PROPERTY_TYPES.find((t) => t.value === this.property()?.property_type)?.label ?? '',
-  );
+  /** Clave, no texto: se traduce en la plantilla para seguir al idioma activo. */
+  readonly typeKey = computed(() => {
+    const type = this.property()?.property_type;
+    return type ? propertyTypeKey(type) : '';
+  });
 
   async ngOnInit(): Promise<void> {
     try {

@@ -8,36 +8,36 @@ import { PhotoPickerComponent } from '../properties/shared/photo-picker.componen
 import { PropertyMedia, ScanStatus } from '../../core/models/database.types';
 import { buildAddress } from '../../core/util/format';
 import { errorMessage } from '../../core/util/errors';
+import { TranslocoDirective } from '@jsverse/transloco';
 
-const STATUS_LABEL: Record<ScanStatus, string> = {
-  solicitado: 'Solicitado',
-  agendado: 'Agendado',
-  completado: 'Completado',
-  cancelado: 'Cancelado',
-};
+/** Clave de traducción del estado de una solicitud de escaneo. */
+export function scanStatusKey(status: ScanStatus): string {
+  return `scan.status.${status}`;
+}
 
 @Component({
   selector: 'app-scanner-dashboard',
   standalone: true,
-  imports: [FormsModule, RouterLink, PhotoPickerComponent],
+  imports: [FormsModule, RouterLink, PhotoPickerComponent, TranslocoDirective],
   template: `
+    <ng-container *transloco="let t">
     <header class="bar">
-      <a routerLink="/quebec-city" class="back">← Propiedades</a>
-      <span class="title">Panel del escáner</span>
+      <a routerLink="/quebec-city" class="back">{{ t('nav.backToProperties') }}</a>
+      <span class="title">{{ t('scanner.title') }}</span>
       <span class="mark">Rentaree<span class="mark__tick" aria-hidden="true"></span></span>
     </header>
 
     <main class="wrap">
       @if (loading()) {
-        <p class="state">Cargando solicitudes…</p>
+        <p class="state">{{ t('scanner.loading') }}</p>
       } @else if (requests().length === 0) {
         <div class="state">
-          <p class="state__title">Sin escaneos asignados</p>
-          <p>Cuando un administrador te asigne una visita, aparecerá aquí.</p>
+          <p class="state__title">{{ t('scanner.emptyTitle') }}</p>
+          <p>{{ t('scanner.emptyText') }}</p>
         </div>
       } @else {
-        <h1>Escaneos asignados</h1>
-        <p class="lead">Registra el recorrido 3D y las dimensiones tras cada visita.</p>
+        <h1>{{ t('scanner.heading') }}</h1>
+        <p class="lead">{{ t('scanner.lead') }}</p>
 
         <div class="list">
           @for (r of requests(); track r.id) {
@@ -47,23 +47,23 @@ const STATUS_LABEL: Record<ScanStatus, string> = {
                   <p class="exp">{{ r.properties.expediente }}</p>
                   <p class="addr">{{ addr(r) }}</p>
                 </div>
-                <span class="status" [attr.data-s]="r.status">{{ label(r.status) }}</span>
+                <span class="status" [attr.data-s]="r.status">{{ t(statusKey(r.status)) }}</span>
               </div>
 
               @if (openId() === r.id) {
                 <div class="req__body">
                   <!-- Recorrido 3D -->
                   <div class="field">
-                    <label [for]="'tour-' + r.id">Recorrido 3D (Matterport)</label>
+                    <label [for]="'tour-' + r.id">{{ t('scanner.tour.label') }}</label>
                     <input [id]="'tour-' + r.id" class="input mono" type="url"
                       placeholder="https://my.matterport.com/show/?m=XXXXXXXX"
                       [(ngModel)]="tourUrl" />
-                    <small class="note">En Matterport: Share → Embed. Pega aquí la URL del modelo.</small>
+                    <small class="note">{{ t('scanner.tour.note') }}</small>
                   </div>
 
                   <!-- Fotos -->
                   <div class="field">
-                    <label>Fotos de la propiedad</label>
+                    <label>{{ t('scanner.photos.label') }}</label>
                     <app-photo-picker
                       [existing]="photos()"
                       [disabled]="busy()"
@@ -74,35 +74,55 @@ const STATUS_LABEL: Record<ScanStatus, string> = {
                   <!-- Dimensiones -->
                   <div class="dims">
                     <div class="dims__head">
-                      <span>Ambiente</span><span>Ancho (m)</span><span>Largo (m)</span>
-                      <span>Superficie (m²)</span><span></span>
+                      <span>{{ t('scanner.dims.room') }}</span>
+                      <span>{{ t('scanner.dims.width') }}</span>
+                      <span>{{ t('scanner.dims.length') }}</span>
+                      <span>{{ t('scanner.dims.area') }}</span>
+                      <span></span>
                     </div>
                     @for (d of dims(); track $index) {
                       <div class="dims__row">
-                        <input class="input" placeholder="Salon" [(ngModel)]="d.room_name" />
+                        <input class="input" [placeholder]="t('scanner.dims.roomPlaceholder')"
+                          [(ngModel)]="d.room_name" />
                         <input class="input mono" type="number" step="0.01" [(ngModel)]="d.width"
                           (ngModelChange)="recalc(d)" />
                         <input class="input mono" type="number" step="0.01" [(ngModel)]="d.length"
                           (ngModelChange)="recalc(d)" />
                         <input class="input mono" type="number" step="0.01" [(ngModel)]="d.area" />
                         <button class="del" type="button" (click)="removeRow($index)"
-                          aria-label="Eliminar ambiente">×</button>
+                          [attr.aria-label]="t('scanner.dims.remove')">×</button>
                       </div>
                     }
                     <div class="dims__foot">
-                      <button class="btn btn--ghost" type="button" (click)="addRow()">+ Ambiente</button>
-                      <span class="total">Total: {{ total() }} m²</span>
+                      <button class="btn btn--ghost" type="button" (click)="addRow()">
+                        {{ t('scanner.dims.add') }}
+                      </button>
+                      <span class="total">{{ t('scanner.dims.total', { total: total() }) }}</span>
                     </div>
                   </div>
 
-                  @if (error()) { <p class="msg msg--error">{{ error() }}</p> }
-                  @if (saved()) { <p class="msg msg--ok">Guardado. Ya aparece en la ficha.</p> }
+                  @if (errorKey(); as key) {
+                    <p class="msg msg--error">{{ t(key) }}</p>
+                  } @else if (errorText()) {
+                    <p class="msg msg--error">{{ errorText() }}</p>
+                  }
+                  @if (saved()) { <p class="msg msg--ok">{{ t('scanner.saved') }}</p> }
 
                   <div class="actions">
                     <button class="btn btn--primary" (click)="save(r)" [disabled]="busy()">
-                      {{ busy() ? saveLabel() : 'Guardar y completar' }}
+                      @if (busy()) {
+                        @if (uploaded(); as u) {
+                          {{ t('scanner.uploading', { done: u.done, total: u.total }) }}
+                        } @else {
+                          {{ t('scanner.saving') }}
+                        }
+                      } @else {
+                        {{ t('scanner.save') }}
+                      }
                     </button>
-                    <a class="btn btn--ghost" [routerLink]="['/propiedad', r.property_id]">Ver ficha</a>
+                    <a class="btn btn--ghost" [routerLink]="['/propiedad', r.property_id]">
+                      {{ t('scanner.viewProperty') }}
+                    </a>
                   </div>
                 </div>
               }
@@ -111,6 +131,7 @@ const STATUS_LABEL: Record<ScanStatus, string> = {
         </div>
       }
     </main>
+    </ng-container>
   `,
   styles: [`
     :host { display: block; min-height: 100dvh; }
@@ -178,22 +199,20 @@ export class ScannerDashboardComponent implements OnInit {
   readonly photos = signal<PropertyMedia[]>([]);
   readonly uploaded = signal<{ done: number; total: number } | null>(null);
   readonly busy = signal(false);
-  readonly error = signal<string | null>(null);
   readonly saved = signal(false);
+
+  // Claves de traducción; el texto crudo solo para errores de Supabase sin clave.
+  readonly errorKey = signal<string | null>(null);
+  readonly errorText = signal<string | null>(null);
 
   tourUrl = '';
 
-  saveLabel(): string {
-    const u = this.uploaded();
-    return u ? `Subiendo fotos ${u.done}/${u.total}…` : 'Guardando…';
+  statusKey(s: ScanStatus): string {
+    return scanStatusKey(s);
   }
 
   async ngOnInit(): Promise<void> {
     await this.load();
-  }
-
-  label(s: ScanStatus): string {
-    return STATUS_LABEL[s];
   }
 
   addr(r: ScanRequestFull): string {
@@ -207,7 +226,7 @@ export class ScannerDashboardComponent implements OnInit {
 
   /** Abre una solicitud y carga lo ya registrado. */
   async toggle(r: ScanRequestFull): Promise<void> {
-    this.error.set(null);
+    this.clearError();
     this.saved.set(false);
 
     if (this.openId() === r.id) {
@@ -251,24 +270,24 @@ export class ScannerDashboardComponent implements OnInit {
 
   /** Borra una foto ya guardada (fila + archivo del bucket). */
   async deletePhoto(m: PropertyMedia): Promise<void> {
-    this.error.set(null);
+    this.clearError();
     try {
       await this.props.deletePhoto(m);
       this.photos.update((rows) => rows.filter((p) => p.id !== m.id));
     } catch {
-      this.error.set('No se pudo eliminar la foto. Inténtalo de nuevo.');
+      this.errorKey.set('scanner.errors.deletePhoto');
     }
   }
 
   async save(r: ScanRequestFull): Promise<void> {
     this.busy.set(true);
-    this.error.set(null);
+    this.clearError();
     this.saved.set(false);
     try {
       const url = this.tourUrl.trim();
       if (url) {
         if (!/^https:\/\/([\w-]+\.)*(matterport\.com|kuula\.co|poly\.cam)\//.test(url)) {
-          this.error.set('El enlace debe ser de Matterport, Kuula o Polycam.');
+          this.errorKey.set('scanner.errors.tourHost');
           return;
         }
         await this.svc.saveTour(r.property_id, url);
@@ -293,11 +312,18 @@ export class ScannerDashboardComponent implements OnInit {
       this.saved.set(true);
       await this.load();
     } catch (e) {
-      this.error.set(errorMessage(e, 'No se pudo guardar. Inténtalo de nuevo.'));
+      const raw = errorMessage(e, '');
+      this.errorKey.set(raw ? null : 'scanner.errors.save');
+      this.errorText.set(raw || null);
     } finally {
       this.uploaded.set(null);
       this.busy.set(false);
     }
+  }
+
+  private clearError(): void {
+    this.errorKey.set(null);
+    this.errorText.set(null);
   }
 
   private emptyRow(): DimensionInput {

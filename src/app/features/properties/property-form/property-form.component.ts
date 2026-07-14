@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, viewChild } from '@angular/core';
+import { Component, OnInit, computed, inject, input, signal, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
   FormBuilder,
@@ -7,20 +7,31 @@ import {
   Validators,
 } from '@angular/forms';
 import { AuthService } from '../../../core/auth/auth.service';
-import { PropertyService, NewPropertyInput } from '../property.service';
+import { PropertyService, NewPropertyInput, canEditProperty } from '../property.service';
 import { GeocodingService } from '../../../core/util/geocoding.service';
-import { CA_PROVINCES, PROPERTY_TYPES } from '../../../core/config/constants';
-import { CaProvince, PropertyType } from '../../../core/models/database.types';
+import {
+  CA_PROVINCES,
+  PROPERTY_STATUSES,
+  PROPERTY_TYPES,
+} from '../../../core/config/constants';
+import {
+  CaProvince,
+  PropertyMedia,
+  PropertyStatus,
+  PropertyType,
+} from '../../../core/models/database.types';
 import { errorMessage } from '../../../core/util/errors';
 import { PhotoPickerComponent } from '../shared/photo-picker.component';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-property-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PhotoPickerComponent],
+  imports: [ReactiveFormsModule, RouterLink, PhotoPickerComponent, TranslocoDirective],
   template: `
+    <ng-container *transloco="let t">
     <header class="bar">
-      <a routerLink="/quebec-city" class="back">← Volver</a>
+      <a routerLink="/quebec-city" class="back">{{ t('common.back') }}</a>
       <span class="mark">Rentaree<span class="mark__tick" aria-hidden="true"></span></span>
     </header>
 
@@ -28,67 +39,102 @@ import { PhotoPickerComponent } from '../shared/photo-picker.component';
       @if (created(); as exp) {
         <!-- Éxito: expediente generado -->
         <section class="done">
-          <p class="eyebrow">Propiedad registrada</p>
-          <h1>Tu expediente está abierto.</h1>
+          <p class="eyebrow">{{ t('property.form.success.eyebrow') }}</p>
+          <h1>{{ t('property.form.success.title') }}</h1>
           <p class="exp">{{ exp }}</p>
           <p class="lead">
-            Guarda este número: identifica toda la información de tu propiedad.
-            @if (scanRequested()) {
-              Te contactaremos para agendar la visita de escaneo 3D.
-            }
+            {{ t('property.form.success.lead') }}
+            @if (scanRequested()) { {{ t('property.form.success.scanRequested') }} }
           </p>
-          @if (photoError(); as pe) {
-            <p class="msg msg--error">{{ pe }}</p>
+          @if (photoError()) {
+            <p class="msg msg--error">{{ t('property.form.photoError') }}</p>
           }
           <div class="row">
-            <a routerLink="/quebec-city" class="btn btn--primary">Ver mis propiedades</a>
-            <button class="btn btn--ghost" (click)="reset()">Registrar otra</button>
+            <a routerLink="/quebec-city" class="btn btn--primary">
+              {{ t('property.form.success.seeAll') }}
+            </a>
+            <button class="btn btn--ghost" (click)="reset()">
+              {{ t('property.form.success.another') }}
+            </button>
           </div>
         </section>
+      } @else if (loadingProperty()) {
+        <p class="state">{{ t('property.detail.loading') }}</p>
       } @else {
         <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-          <h1>Nueva propiedad</h1>
-          <p class="lead">Registra una propiedad para ponerla en alquiler.</p>
+          @if (isEdit()) {
+            <h1>{{ t('property.form.editTitle') }}</h1>
+            <p class="lead">{{ t('property.form.editLead') }}</p>
+
+            <!-- Expediente (solo lectura: lo genera la base) y estado -->
+            <section class="block">
+              <div class="block__head">
+                <h2>{{ t('property.form.state.title') }}</h2>
+                <p>{{ t('property.form.state.lead') }}</p>
+              </div>
+              <div class="grid2">
+                <div class="field">
+                  <label for="ex">{{ t('property.form.state.expediente') }}</label>
+                  <input id="ex" class="input mono" [value]="expediente() ?? '—'" readonly />
+                  <small class="note">{{ t('property.form.state.expedienteNote') }}</small>
+                </div>
+                <div class="field">
+                  <label for="st-status">{{ t('property.form.state.status') }}</label>
+                  <select id="st-status" class="input" formControlName="status">
+                    @for (s of statuses; track s) {
+                      <option [value]="s">{{ t('property.status.' + s) }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </section>
+          } @else {
+            <h1>{{ t('property.form.title') }}</h1>
+            <p class="lead">{{ t('property.form.lead') }}</p>
+          }
 
           <!-- Contacto -->
           <section class="block">
             <div class="block__head">
-              <h2>Datos de contacto</h2>
-              <p>Pre-llenados desde tu perfil — modifícalos si es necesario.</p>
+              <h2>{{ t('property.form.contact.title') }}</h2>
+              <p>{{ t('property.form.contact.lead') }}</p>
             </div>
             <div class="grid2">
               <div class="field">
-                <label for="cf">Nombre <i>*</i></label>
+                <label for="cf">{{ t('property.form.fields.firstName') }} <i>*</i></label>
                 <input id="cf" class="input" formControlName="contact_first_name"
                   [class.is-invalid]="bad('contact_first_name')" />
               </div>
               <div class="field">
-                <label for="cl">Apellido <i>*</i></label>
+                <label for="cl">{{ t('property.form.fields.lastName') }} <i>*</i></label>
                 <input id="cl" class="input" formControlName="contact_last_name"
                   [class.is-invalid]="bad('contact_last_name')" />
               </div>
             </div>
             <div class="grid2">
               <div class="field">
-                <label for="cp">Teléfono <i>*</i></label>
+                <label for="cp">{{ t('property.form.fields.phone') }} <i>*</i></label>
                 <input id="cp" class="input" type="tel" placeholder="(514) 555-0142"
                   formControlName="contact_phone" [class.is-invalid]="bad('contact_phone')" />
               </div>
               <div class="field">
-                <label for="ce">Correo electrónico</label>
+                <label for="ce">{{ t('property.form.fields.email') }}</label>
                 <input id="ce" class="input" formControlName="contact_email" readonly />
-                <small class="note">No se puede modificar aquí.</small>
+                <small class="note">{{ t('property.form.contact.emailNote') }}</small>
               </div>
             </div>
           </section>
 
           <!-- Tipo -->
           <section class="block">
-            <div class="block__head"><h2>Tipo de propiedad</h2></div>
+            <div class="block__head"><h2>{{ t('property.form.typeTitle') }}</h2></div>
             <div class="chips">
-              @for (t of types; track t.value) {
-                <button type="button" class="chip" [class.on]="form.value.property_type === t.value"
-                  (click)="form.patchValue({ property_type: t.value })">{{ t.label }}</button>
+              @for (type of types; track type.value) {
+                <button type="button" class="chip"
+                  [class.on]="form.value.property_type === type.value"
+                  (click)="form.patchValue({ property_type: type.value })">
+                  {{ t(type.labelKey) }}
+                </button>
               }
             </div>
           </section>
@@ -96,34 +142,35 @@ import { PhotoPickerComponent } from '../shared/photo-picker.component';
           <!-- Detalles -->
           <section class="block">
             <div class="block__head">
-              <h2>Detalles</h2>
-              <p>Las dimensiones se completan con el escaneo 3D; puedes dejarlas vacías.</p>
+              <h2>{{ t('property.form.details.title') }}</h2>
+              <p>{{ t('property.form.details.lead') }}</p>
             </div>
             <div class="field">
-              <label for="ti">Título</label>
-              <input id="ti" class="input" placeholder="Lumineux 4½ au Plateau" formControlName="title" />
+              <label for="ti">{{ t('property.form.fields.title') }}</label>
+              <input id="ti" class="input" [placeholder]="t('property.form.fields.titlePlaceholder')"
+                formControlName="title" />
             </div>
             <div class="grid4">
               <div class="field">
-                <label for="pr">Precio (CAD/mois) <i>*</i></label>
+                <label for="pr">{{ t('property.form.fields.price') }} <i>*</i></label>
                 <input id="pr" class="input" type="number" min="0" formControlName="price"
                   [class.is-invalid]="bad('price')" />
               </div>
               <div class="field">
-                <label for="be">Camas</label>
+                <label for="be">{{ t('property.form.fields.bedrooms') }}</label>
                 <input id="be" class="input" type="number" min="0" formControlName="bedrooms" />
               </div>
               <div class="field">
-                <label for="ba">Baños</label>
+                <label for="ba">{{ t('property.form.fields.bathrooms') }}</label>
                 <input id="ba" class="input" type="number" min="0" step="0.5" formControlName="bathrooms" />
               </div>
               <div class="field">
-                <label for="ar">Superficie (m²)</label>
+                <label for="ar">{{ t('property.form.fields.area') }}</label>
                 <input id="ar" class="input" type="number" min="0" formControlName="area" />
               </div>
             </div>
             <div class="field">
-              <label for="de">Descripción</label>
+              <label for="de">{{ t('property.form.fields.description') }}</label>
               <textarea id="de" class="input" rows="3" formControlName="description"></textarea>
             </div>
           </section>
@@ -131,42 +178,42 @@ import { PhotoPickerComponent } from '../shared/photo-picker.component';
           <!-- Localización -->
           <section class="block">
             <div class="block__head">
-              <h2>Localización del inmueble</h2>
-              <p>¿Dónde se realizará la visita de estimación?</p>
+              <h2>{{ t('property.form.location.title') }}</h2>
+              <p>{{ t('property.form.location.lead') }}</p>
             </div>
             <div class="grid-addr">
               <div class="field">
-                <label for="un">Número de unidad</label>
+                <label for="un">{{ t('property.form.fields.unit') }}</label>
                 <input id="un" class="input" placeholder="5" formControlName="unit_number" />
-                <small class="note">Opcional. Se combinará: 5-123 Main St.</small>
+                <small class="note">{{ t('property.form.fields.unitNote') }}</small>
               </div>
               <div class="field">
-                <label for="st">Número y nombre de calle <i>*</i></label>
+                <label for="st">{{ t('property.form.fields.street') }} <i>*</i></label>
                 <input id="st" class="input" placeholder="1240 Rue Rachel E"
                   formControlName="street" [class.is-invalid]="bad('street')" />
               </div>
             </div>
             <div class="grid3">
               <div class="field">
-                <label for="ci">Ciudad <i>*</i></label>
+                <label for="ci">{{ t('property.form.fields.city') }} <i>*</i></label>
                 <input id="ci" class="input" formControlName="city" [class.is-invalid]="bad('city')" />
               </div>
               <div class="field">
-                <label for="pv">Provincia / Territorio <i>*</i></label>
+                <label for="pv">{{ t('property.form.fields.province') }} <i>*</i></label>
                 <select id="pv" class="input" formControlName="province">
                   @for (p of provinces; track p.code) {
-                    <option [value]="p.code">{{ p.code }} — {{ p.name }}</option>
+                    <option [value]="p.code">{{ p.code }} — {{ t(p.labelKey) }}</option>
                   }
                 </select>
               </div>
               <div class="field">
-                <label for="pc">Código postal <i>*</i></label>
+                <label for="pc">{{ t('property.form.fields.postalCode') }} <i>*</i></label>
                 <input id="pc" class="input" placeholder="H2J 2J5" formControlName="postal_code"
                   [class.is-invalid]="bad('postal_code')" />
               </div>
             </div>
             <div class="field">
-              <label for="nb">Barrio</label>
+              <label for="nb">{{ t('property.form.fields.neighbourhood') }}</label>
               <input id="nb" class="input" placeholder="Le Plateau-Mont-Royal" formControlName="neighbourhood" />
             </div>
           </section>
@@ -174,56 +221,81 @@ import { PhotoPickerComponent } from '../shared/photo-picker.component';
           <!-- GPS -->
           <section class="block">
             <div class="block__head">
-              <h2>Coordenadas GPS</h2>
-              <p>Para mostrar la ubicación en el mapa.</p>
+              <h2>{{ t('property.form.gps.title') }}</h2>
+              <p>{{ t('property.form.gps.lead') }}</p>
             </div>
             <div class="gps">
               <div class="field">
-                <label for="la">Latitud</label>
+                <label for="la">{{ t('property.form.fields.latitude') }}</label>
                 <input id="la" class="input mono" type="number" step="any" formControlName="latitude" />
               </div>
               <div class="field">
-                <label for="lo">Longitud</label>
+                <label for="lo">{{ t('property.form.fields.longitude') }}</label>
                 <input id="lo" class="input mono" type="number" step="any" formControlName="longitude" />
               </div>
               <button type="button" class="btn btn--ghost" (click)="locate()" [disabled]="geocoding()">
-                {{ geocoding() ? 'Buscando…' : 'Buscar desde la dirección' }}
+                {{ geocoding() ? t('property.form.gps.locating') : t('property.form.gps.locate') }}
               </button>
             </div>
-            @if (geoMsg()) { <p class="note note--geo">{{ geoMsg() }}</p> }
+            @if (geoMsg(); as g) {
+              <p class="note note--geo">{{ t(g.key, g.params) }}</p>
+            }
           </section>
 
           <!-- Fotos -->
           <section class="block">
             <div class="block__head">
-              <h2>Fotos</h2>
-              <p>Opcionales. Se suben al registrar la propiedad; la primera es la portada.</p>
+              <h2>{{ t('property.form.photos.title') }}</h2>
+              <p>{{ t(isEdit() ? 'property.form.photos.editLead' : 'property.form.photos.lead') }}</p>
             </div>
-            <app-photo-picker [disabled]="busy()" />
+            <app-photo-picker
+              [existing]="photos()"
+              [disabled]="busy()"
+              (existingRemove)="deletePhoto($event)"
+            />
           </section>
 
-          <!-- Escaneo 3D -->
-          <section class="block">
-            <label class="scan">
-              <input type="checkbox" formControlName="request_scan" />
-              <span>
-                <strong>Solicitar escaneo 3D</strong>
-                Un técnico visita la propiedad y captura el recorrido con Matterport.
-              </span>
-            </label>
-          </section>
+          <!-- Escaneo 3D: solo al dar de alta; después se gestiona desde el panel del escáner -->
+          @if (!isEdit()) {
+            <section class="block">
+              <label class="scan">
+                <input type="checkbox" formControlName="request_scan" />
+                <span>
+                  <strong>{{ t('property.form.scan.title') }}</strong>
+                  {{ t('property.form.scan.lead') }}
+                </span>
+              </label>
+            </section>
+          }
 
-          @if (error()) { <p class="msg msg--error">{{ error() }}</p> }
+          @if (errorKey(); as key) {
+            <p class="msg msg--error">{{ t(key) }}</p>
+          } @else if (errorText()) {
+            <p class="msg msg--error">{{ errorText() }}</p>
+          }
 
           <div class="actions">
             <button class="btn btn--primary" type="submit" [disabled]="busy()">
-              {{ busy() ? uploadLabel() : 'Registrar propiedad' }}
+              @if (busy()) {
+                @if (uploaded(); as u) {
+                  {{ t('property.form.uploading', { done: u.done, total: u.total }) }}
+                } @else {
+                  {{ t(isEdit() ? 'common.saving' : 'property.form.submitting') }}
+                }
+              } @else {
+                {{ t(isEdit() ? 'property.form.save' : 'property.form.submit') }}
+              }
             </button>
-            <a routerLink="/quebec-city" class="btn btn--ghost">Cancelar</a>
+            @if (isEdit()) {
+              <a [routerLink]="['/propiedad', id()]" class="btn btn--ghost">{{ t('common.cancel') }}</a>
+            } @else {
+              <a routerLink="/quebec-city" class="btn btn--ghost">{{ t('common.cancel') }}</a>
+            }
           </div>
         </form>
       }
     </main>
+    </ng-container>
   `,
   styles: [`
     :host { display: block; min-height: 100dvh; }
@@ -293,25 +365,36 @@ export class PropertyFormComponent implements OnInit {
 
   readonly types = PROPERTY_TYPES;
   readonly provinces = CA_PROVINCES;
+  readonly statuses = PROPERTY_STATUSES;
+
+  /**
+   * Id de la ruta /propiedad/:id/editar (withComponentInputBinding).
+   * Vacío en /quebec-city/nueva: es lo que distingue alta de edición.
+   */
+  readonly id = input<string | undefined>(undefined);
+  readonly isEdit = computed(() => !!this.id());
 
   private readonly picker = viewChild(PhotoPickerComponent);
 
   readonly busy = signal(false);
   readonly geocoding = signal(false);
-  readonly error = signal<string | null>(null);
-  readonly geoMsg = signal<string | null>(null);
   readonly created = signal<string | null>(null);   // número de expediente
   readonly scanRequested = signal(false);
+  readonly loadingProperty = signal(false);
+  readonly expediente = signal<string | null>(null);
+  readonly photos = signal<PropertyMedia[]>([]);
   readonly uploaded = signal<{ done: number; total: number } | null>(null);
-  readonly photoError = signal<string | null>(null);
+  readonly photoError = signal(false);
 
-  /** Texto del botón: mientras suben fotos, dice por cuál va. */
-  uploadLabel(): string {
-    const u = this.uploaded();
-    return u ? `Subiendo fotos ${u.done}/${u.total}…` : 'Registrando…';
-  }
+  // Claves de traducción, no texto: los mensajes deben seguir al idioma activo.
+  readonly errorKey = signal<string | null>(null);
+  /** Mensaje crudo de Supabase cuando no hay clave para él. */
+  readonly errorText = signal<string | null>(null);
+  readonly geoMsg = signal<{ key: string; params?: Record<string, unknown> } | null>(null);
 
   readonly form: FormGroup = this.fb.group({
+    // Estado (solo se edita; al dar de alta se publica como 'disponible')
+    status: ['disponible' as PropertyStatus, Validators.required],
     // Contacto
     contact_first_name: ['', Validators.required],
     contact_last_name: ['', Validators.required],
@@ -342,6 +425,14 @@ export class PropertyFormComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.auth.whenReady();
+
+    const id = this.id();
+    if (id) {
+      await this.loadForEdit(id);
+      return;
+    }
+
+    // Alta: el contacto se pre-llena con el perfil de quien publica.
     const p = this.auth.profile();
     if (p) {
       this.form.patchValue({
@@ -350,6 +441,66 @@ export class PropertyFormComponent implements OnInit {
         contact_phone: p.phone,
         contact_email: p.email,
       });
+    }
+  }
+
+  /**
+   * Precarga la propiedad. Si el usuario no puede editarla, lo devuelve a la ficha:
+   * es solo cortesía — quien de verdad lo impide es la política RLS del update.
+   */
+  private async loadForEdit(id: string): Promise<void> {
+    this.loadingProperty.set(true);
+    try {
+      const p = await this.svc.getById(id);
+      const userId = this.auth.session()?.user?.id ?? null;
+      if (!p || !canEditProperty(p, userId, this.auth.role())) {
+        await this.router.navigate(['/propiedad', id]);
+        return;
+      }
+
+      this.expediente.set(p.expediente);
+      this.photos.set(
+        p.property_media
+          .filter((m) => m.media_type === 'photo')
+          .sort((a, b) => a.sort_order - b.sort_order),
+      );
+
+      this.form.patchValue({
+        status: p.status,
+        contact_first_name: p.contact_first_name,
+        contact_last_name: p.contact_last_name,
+        contact_phone: p.contact_phone,
+        contact_email: p.contact_email,
+        property_type: p.property_type,
+        title: p.title,
+        description: p.description,
+        price: p.price,
+        bedrooms: p.bedrooms,
+        bathrooms: p.bathrooms,
+        area: p.area,
+        unit_number: p.unit_number,
+        street: p.street,
+        city: p.city,
+        province: p.province,
+        postal_code: p.postal_code,
+        neighbourhood: p.neighbourhood,
+        latitude: p.latitude,
+        longitude: p.longitude,
+      });
+    } catch (e) {
+      this.showError(e, 'property.form.error');
+    } finally {
+      this.loadingProperty.set(false);
+    }
+  }
+
+  /** Borra una foto ya guardada (fila + archivo del bucket). */
+  async deletePhoto(m: PropertyMedia): Promise<void> {
+    try {
+      await this.svc.deletePhoto(m);
+      this.photos.update((rows) => rows.filter((p) => p.id !== m.id));
+    } catch {
+      this.errorKey.set('property.form.photoDeleteError');
     }
   }
 
@@ -362,7 +513,7 @@ export class PropertyFormComponent implements OnInit {
   async locate(): Promise<void> {
     const v = this.form.getRawValue();
     if (!v.street || !v.city || !v.postal_code) {
-      this.geoMsg.set('Completa calle, ciudad y código postal para buscar las coordenadas.');
+      this.geoMsg.set({ key: 'property.form.gps.incomplete' });
       return;
     }
     this.geocoding.set(true);
@@ -376,12 +527,12 @@ export class PropertyFormComponent implements OnInit {
       });
       if (r) {
         this.form.patchValue({ latitude: r.lat, longitude: r.lng });
-        this.geoMsg.set(`Ubicación encontrada: ${r.displayName}`);
+        this.geoMsg.set({ key: 'property.form.gps.found', params: { place: r.displayName } });
       } else {
-        this.geoMsg.set('No encontramos esa dirección. Puedes escribir las coordenadas a mano.');
+        this.geoMsg.set({ key: 'property.form.gps.notFound' });
       }
     } catch {
-      this.geoMsg.set('No se pudo buscar la dirección. Escribe las coordenadas a mano.');
+      this.geoMsg.set({ key: 'property.form.gps.failed' });
     } finally {
       this.geocoding.set(false);
     }
@@ -390,19 +541,21 @@ export class PropertyFormComponent implements OnInit {
   async submit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.error.set('Revisa los campos marcados.');
+      this.errorKey.set('property.form.invalid');
       return;
     }
     const userId = this.auth.session()?.user?.id;
     if (!userId) return;
 
     this.busy.set(true);
-    this.error.set(null);
+    this.errorKey.set(null);
+    this.errorText.set(null);
     try {
       const v = this.form.getRawValue();
       const input: NewPropertyInput = {
         property_type: v.property_type,
-        status: 'disponible',
+        // Al dar de alta se publica; al editar, el dueño decide (así la retira del mercado).
+        status: this.isEdit() ? v.status : 'disponible',
         title: v.title || null,
         description: v.description || null,
         price: v.price,
@@ -424,27 +577,20 @@ export class PropertyFormComponent implements OnInit {
         longitude: v.longitude,
       };
 
-      const property = await this.svc.create(input, userId);
-
-      // Las fotos solo se pueden subir ahora: su ruta lleva el id de la propiedad.
-      // Si fallan, la propiedad ya está creada — se avisa, no se pierde el expediente.
-      const photos = this.picker()?.files() ?? [];
-      if (photos.length) {
-        try {
-          this.uploaded.set({ done: 0, total: photos.length });
-          await this.svc.uploadPhotos(property.id, photos, {
-            onProgress: (done, total) => this.uploaded.set({ done, total }),
-          });
-          this.picker()?.clear();
-        } catch {
-          this.photoError.set(
-            'La propiedad se registró, pero no se pudieron subir las fotos. ' +
-              'Añádelas más tarde desde la ficha.',
-          );
-        } finally {
-          this.uploaded.set(null);
+      const editId = this.id();
+      if (editId) {
+        await this.svc.update(editId, input);
+        // Si fallan las fotos, no navegamos: el aviso debe verse donde está el usuario.
+        if (!(await this.uploadNewPhotos(editId))) {
+          this.errorKey.set('property.form.photoError');
+          return;
         }
+        await this.router.navigate(['/propiedad', editId]);
+        return;
       }
+
+      const property = await this.svc.create(input, userId);
+      await this.uploadNewPhotos(property.id);
 
       if (v.request_scan) {
         await this.svc.requestScan(property.id, userId);
@@ -453,18 +599,53 @@ export class PropertyFormComponent implements OnInit {
 
       this.created.set(property.expediente);
     } catch (e) {
-      this.error.set(errorMessage(e, 'No se pudo registrar la propiedad. Inténtalo de nuevo.'));
+      this.showError(e, 'property.form.error');
     } finally {
       this.busy.set(false);
     }
+  }
+
+  /**
+   * Sube las fotos nuevas del selector. Van detrás de las que ya existen.
+   * Devuelve false si fallaron: la propiedad ya se guardó, así que el aviso
+   * es sobre las fotos, no sobre la propiedad.
+   */
+  private async uploadNewPhotos(propertyId: string): Promise<boolean> {
+    const files = this.picker()?.files() ?? [];
+    if (!files.length) return true;
+
+    const startOrder = this.photos().reduce((max, p) => Math.max(max, p.sort_order + 1), 0);
+    try {
+      this.uploaded.set({ done: 0, total: files.length });
+      await this.svc.uploadPhotos(propertyId, files, {
+        startOrder,
+        onProgress: (done, total) => this.uploaded.set({ done, total }),
+      });
+      this.picker()?.clear();
+      return true;
+    } catch {
+      this.photoError.set(true);
+      return false;
+    } finally {
+      this.uploaded.set(null);
+    }
+  }
+
+  /** Con mensaje de Supabase se muestra tal cual; sin él, la clave genérica. */
+  private showError(e: unknown, fallbackKey: string): void {
+    const raw = errorMessage(e, '');
+    this.errorKey.set(raw ? null : fallbackKey);
+    this.errorText.set(raw || null);
   }
 
   reset(): void {
     this.created.set(null);
     this.scanRequested.set(false);
     this.geoMsg.set(null);
-    this.photoError.set(null);
+    this.photoError.set(false);
     this.uploaded.set(null);
+    this.errorKey.set(null);
+    this.errorText.set(null);
     this.form.reset({
       property_type: 'apartamento',
       city: 'Montréal',

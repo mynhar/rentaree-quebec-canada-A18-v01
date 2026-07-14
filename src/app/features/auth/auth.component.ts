@@ -6,14 +6,16 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
+import { LanguageSwitcherComponent } from '../../core/i18n/language-switcher.component';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslocoDirective, LanguageSwitcherComponent],
   template: `
-    <div class="auth">
+    <div class="auth" *transloco="let t">
       <!-- Panel de marca con el plano de línea (firma visual) -->
       <aside class="brand">
         <a routerLink="/" class="brand__mark">
@@ -35,24 +37,26 @@ import { AuthService } from '../../core/auth/auth.service';
         </svg>
 
         <div class="brand__dims">
-          <span>6,40 m</span><span class="sep">×</span><span>4,10 m</span>
+          <span>{{ t('auth.brand.width') }}</span><span class="sep">×</span><span>{{ t('auth.brand.length') }}</span>
         </div>
-        <p class="brand__note">
-          Recorridos 3D y dimensiones reales de cada propiedad, en Quebec.
-        </p>
+        <p class="brand__note">{{ t('auth.brand.note') }}</p>
       </aside>
 
       <!-- Panel del formulario -->
       <main class="panel">
         <div class="panel__inner">
-          <div class="seg" role="group" aria-label="Iniciar sesión o registrarse">
+          <div class="panel__lang">
+            <app-language-switcher />
+          </div>
+
+          <div class="seg" role="group" [attr.aria-label]="t('auth.tabs.aria')">
             <button type="button" [class.on]="mode() === 'login'"
               [attr.aria-pressed]="mode() === 'login'" (click)="setMode('login')">
-              Iniciar sesión
+              {{ t('auth.tabs.login') }}
             </button>
             <button type="button" [class.on]="mode() === 'register'"
               [attr.aria-pressed]="mode() === 'register'" (click)="setMode('register')">
-              Registrarse
+              {{ t('auth.tabs.register') }}
             </button>
           </div>
 
@@ -63,79 +67,84 @@ import { AuthService } from '../../core/auth/auth.service';
               <path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z"/>
               <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
             </svg>
-            Continuar con Google
+            {{ t('auth.google') }}
           </button>
 
-          <div class="divider"><span>o</span></div>
+          <div class="divider"><span>{{ t('common.or') }}</span></div>
 
           @if (mode() === 'login') {
             <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
               <div class="field">
-                <label for="l-email">Correo electrónico</label>
+                <label for="l-email">{{ t('auth.fields.email') }}</label>
                 <input id="l-email" class="input" type="email" autocomplete="email"
                   formControlName="email" [class.is-invalid]="invalid(loginForm, 'email')" />
                 @if (invalid(loginForm, 'email')) {
-                  <small class="hint">Ingresa un correo válido.</small>
+                  <small class="hint">{{ t('auth.hints.email') }}</small>
                 }
               </div>
               <div class="field">
-                <label for="l-pass">Contraseña</label>
+                <label for="l-pass">{{ t('auth.fields.password') }}</label>
                 <input id="l-pass" class="input" type="password" autocomplete="current-password"
                   formControlName="password" [class.is-invalid]="invalid(loginForm, 'password')" />
                 @if (invalid(loginForm, 'password')) {
-                  <small class="hint">Ingresa tu contraseña.</small>
+                  <small class="hint">{{ t('auth.hints.password') }}</small>
                 }
               </div>
               <button class="btn btn--primary btn--block" type="submit" [disabled]="busy()">
-                {{ busy() ? 'Entrando…' : 'Iniciar sesión' }}
+                {{ busy() ? t('auth.login.submitting') : t('auth.login.submit') }}
               </button>
             </form>
           } @else {
             <form [formGroup]="registerForm" (ngSubmit)="submitRegister()" novalidate>
               <div class="grid2">
                 <div class="field">
-                  <label for="r-first">Nombre</label>
+                  <label for="r-first">{{ t('auth.fields.firstName') }}</label>
                   <input id="r-first" class="input" type="text" autocomplete="given-name"
                     formControlName="firstName" [class.is-invalid]="invalid(registerForm, 'firstName')" />
                 </div>
                 <div class="field">
-                  <label for="r-last">Apellido</label>
+                  <label for="r-last">{{ t('auth.fields.lastName') }}</label>
                   <input id="r-last" class="input" type="text" autocomplete="family-name"
                     formControlName="lastName" [class.is-invalid]="invalid(registerForm, 'lastName')" />
                 </div>
               </div>
               <div class="field">
-                <label for="r-email">Correo electrónico</label>
+                <label for="r-email">{{ t('auth.fields.email') }}</label>
                 <input id="r-email" class="input" type="email" autocomplete="email"
                   formControlName="email" [class.is-invalid]="invalid(registerForm, 'email')" />
                 @if (invalid(registerForm, 'email')) {
-                  <small class="hint">Ingresa un correo válido.</small>
+                  <small class="hint">{{ t('auth.hints.email') }}</small>
                 }
               </div>
               <div class="field">
-                <label for="r-phone">Teléfono</label>
+                <label for="r-phone">{{ t('auth.fields.phone') }}</label>
                 <input id="r-phone" class="input" type="tel" autocomplete="tel" placeholder="(514) 555-0142"
                   formControlName="phone" [class.is-invalid]="invalid(registerForm, 'phone')" />
                 @if (invalid(registerForm, 'phone')) {
-                  <small class="hint">Ingresa un teléfono válido.</small>
+                  <small class="hint">{{ t('auth.hints.phone') }}</small>
                 }
               </div>
               <div class="field">
-                <label for="r-pass">Contraseña</label>
+                <label for="r-pass">{{ t('auth.fields.password') }}</label>
                 <input id="r-pass" class="input" type="password" autocomplete="new-password"
                   formControlName="password" [class.is-invalid]="invalid(registerForm, 'password')" />
                 @if (invalid(registerForm, 'password')) {
-                  <small class="hint">Mínimo 8 caracteres.</small>
+                  <small class="hint">{{ t('auth.hints.passwordMin') }}</small>
                 }
               </div>
               <button class="btn btn--primary btn--block" type="submit" [disabled]="busy()">
-                {{ busy() ? 'Creando cuenta…' : 'Crear cuenta' }}
+                {{ busy() ? t('auth.register.submitting') : t('auth.register.submit') }}
               </button>
             </form>
           }
 
-          @if (error()) { <p class="msg msg--error">{{ error() }}</p> }
-          @if (notice()) { <p class="msg msg--ok">{{ notice() }}</p> }
+          <!-- Se guardan claves, no texto: así el mensaje se re-traduce si cambias de idioma. -->
+          @if (errorKey(); as key) {
+            <p class="msg msg--error">{{ t(key) }}</p>
+          } @else if (errorText()) {
+            <p class="msg msg--error">{{ errorText() }}</p>
+          }
+          @if (noticeKey(); as key) { <p class="msg msg--ok">{{ t(key) }}</p> }
         </div>
       </main>
     </div>
@@ -193,6 +202,7 @@ import { AuthService } from '../../core/auth/auth.service';
       padding: 40px 24px;
     }
     .panel__inner { width: 100%; max-width: 380px; }
+    .panel__lang { display: flex; justify-content: flex-end; margin-bottom: 10px; }
     .seg {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -245,8 +255,12 @@ export class AuthComponent {
 
   readonly mode = signal<'login' | 'register'>('login');
   readonly busy = signal(false);
-  readonly error = signal<string | null>(null);
-  readonly notice = signal<string | null>(null);
+
+  // Claves de traducción, no texto ya traducido: el mensaje debe seguir al idioma.
+  readonly errorKey = signal<string | null>(null);
+  readonly noticeKey = signal<string | null>(null);
+  /** Mensaje crudo de Supabase cuando no hay clave para él. */
+  readonly errorText = signal<string | null>(null);
 
   readonly loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -263,8 +277,7 @@ export class AuthComponent {
 
   setMode(m: 'login' | 'register'): void {
     this.mode.set(m);
-    this.error.set(null);
-    this.notice.set(null);
+    this.clearMessages();
   }
 
   invalid(form: FormGroup, ctrl: string): boolean {
@@ -280,7 +293,7 @@ export class AuthComponent {
     await this.run(async () => {
       const { email, password } = this.loginForm.getRawValue();
       const { error } = await this.auth.signInWithEmail(email, password);
-      if (error) return this.error.set(this.translate(error.message));
+      if (error) return this.showError(error.message);
       await this.router.navigate(['/quebec-city']);
     });
   }
@@ -299,23 +312,23 @@ export class AuthComponent {
         lastName: v.lastName,
         phone: v.phone,
       });
-      if (error) return this.error.set(this.translate(error.message));
+      if (error) return this.showError(error.message);
 
       if (data.session) {
         await this.router.navigate(['/quebec-city']);
       } else {
-        this.notice.set('Te enviamos un correo para confirmar tu cuenta. Revísalo para continuar.');
+        this.noticeKey.set('auth.register.confirmEmail');
         this.mode.set('login');
       }
     });
   }
 
   async google(): Promise<void> {
-    this.error.set(null);
+    this.clearMessages();
     this.busy.set(true);
     const { error } = await this.auth.signInWithGoogle();
     if (error) {
-      this.error.set(this.translate(error.message));
+      this.showError(error.message);
       this.busy.set(false);
     }
     // Si no hay error, el navegador redirige a Google.
@@ -323,24 +336,40 @@ export class AuthComponent {
 
   private async run(fn: () => Promise<void>): Promise<void> {
     this.busy.set(true);
-    this.error.set(null);
-    this.notice.set(null);
+    this.clearMessages();
     try {
       await fn();
     } catch {
-      this.error.set('Algo salió mal. Inténtalo de nuevo.');
+      this.errorKey.set('common.genericError');
     } finally {
       this.busy.set(false);
     }
   }
 
-  private translate(message: string): string {
+  private clearMessages(): void {
+    this.errorKey.set(null);
+    this.errorText.set(null);
+    this.noticeKey.set(null);
+  }
+
+  /**
+   * Supabase devuelve los errores de auth en inglés y sin código estable, así que
+   * se reconocen por su texto. Lo que no se reconoce se muestra tal cual (en inglés):
+   * es preferible a esconder la causa real detrás de un mensaje genérico.
+   */
+  private showError(message: string): void {
+    const key = this.errorKeyFor(message);
+    this.errorKey.set(key);
+    this.errorText.set(key ? null : message);
+  }
+
+  private errorKeyFor(message: string): string | null {
     const m = message.toLowerCase();
-    if (m.includes('invalid login credentials')) return 'Correo o contraseña incorrectos.';
+    if (m.includes('invalid login credentials')) return 'auth.errors.invalidCredentials';
     if (m.includes('already registered') || m.includes('already been registered'))
-      return 'Ese correo ya está registrado. Inicia sesión.';
-    if (m.includes('email not confirmed')) return 'Confirma tu correo antes de iniciar sesión.';
-    if (m.includes('password')) return 'La contraseña no cumple los requisitos.';
-    return message;
+      return 'auth.errors.alreadyRegistered';
+    if (m.includes('email not confirmed')) return 'auth.errors.emailNotConfirmed';
+    if (m.includes('password')) return 'auth.errors.weakPassword';
+    return null;
   }
 }

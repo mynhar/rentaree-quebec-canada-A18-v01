@@ -1,21 +1,24 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoDirective } from '@jsverse/transloco';
+import { LanguageSwitcherComponent } from '../../core/i18n/language-switcher.component';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslocoDirective, LanguageSwitcherComponent],
   template: `
-    <div class="lp">
+    <div class="lp" *transloco="let t">
       <!-- Barra superior -->
       <header class="topbar">
         <div class="topbar__inner">
           <a routerLink="/" class="mark">
             Rentaree<span class="mark__tick" aria-hidden="true"></span>
           </a>
-          <span class="chip">Interiores en 3D</span>
+          <span class="chip">{{ t('landing.badge') }}</span>
           <nav class="topbar__nav">
-            <a routerLink="/auth" class="btn btn--primary">Iniciar sesión</a>
+            <app-language-switcher />
+            <a routerLink="/auth" class="btn btn--primary">{{ t('landing.signIn') }}</a>
           </nav>
         </div>
       </header>
@@ -24,15 +27,12 @@ import { RouterLink } from '@angular/router';
         <!-- Hero -->
         <section class="hero">
           <div class="hero__text">
-            <p class="eyebrow">Tecnología 3D · Quebec</p>
-            <h1>Alquila sabiendo<br />exactamente lo que rentas.</h1>
-            <p class="lead">
-              Cada propiedad incluye fotos, un recorrido 3D y las dimensiones reales
-              de cada ambiente, extraídas del propio escaneo. Sin sorpresas al llegar.
-            </p>
+            <p class="eyebrow">{{ t('landing.hero.eyebrow') }}</p>
+            <h1>{{ t('landing.hero.title1') }}<br />{{ t('landing.hero.title2') }}</h1>
+            <p class="lead">{{ t('landing.hero.lead') }}</p>
             <div class="hero__cta">
-              <a routerLink="/auth" class="btn btn--primary">Explorar propiedades</a>
-              <a href="#escaneo" class="btn btn--ghost">Escanear mi propiedad</a>
+              <a routerLink="/auth" class="btn btn--primary">{{ t('landing.hero.ctaExplore') }}</a>
+              <a href="#escaneo" class="btn btn--ghost">{{ t('landing.hero.ctaScan') }}</a>
             </div>
           </div>
 
@@ -45,14 +45,14 @@ import { RouterLink } from '@angular/router';
               <line x1="120" y1="150" x2="120" y2="240" stroke="#2A2E2A" stroke-width="2"/>
               <line x1="188" y1="200" x2="188" y2="240" stroke="#2A2E2A" stroke-width="2"/>
               <path d="M188 200 A28 28 0 0 1 216 228" stroke="#1F4E6B" stroke-width="1.5"/>
-              <text x="96" y="92" class="rlbl">Salon</text>
-              <text x="250" y="92" class="rlbl">Cuisine</text>
-              <text x="66" y="200" class="rlbl">Chambre</text>
-              <text x="256" y="200" class="rlbl">Bureau</text>
+              <text x="96" y="92" class="rlbl">{{ t('landing.plan.salon') }}</text>
+              <text x="250" y="92" class="rlbl">{{ t('landing.plan.cuisine') }}</text>
+              <text x="66" y="200" class="rlbl">{{ t('landing.plan.chambre') }}</text>
+              <text x="256" y="200" class="rlbl">{{ t('landing.plan.bureau') }}</text>
               <line x1="24" y1="256" x2="324" y2="256" stroke="#9AA09A" stroke-width="1"/>
               <line x1="24" y1="251" x2="24" y2="261" stroke="#9AA09A" stroke-width="1"/>
               <line x1="324" y1="251" x2="324" y2="261" stroke="#9AA09A" stroke-width="1"/>
-              <text x="174" y="274" class="dlbl">9,60 m</text>
+              <text x="174" y="274" class="dlbl">{{ t('landing.plan.width') }}</text>
             </svg>
           </div>
         </section>
@@ -60,19 +60,19 @@ import { RouterLink } from '@angular/router';
         <!-- Ejemplos de mercado (precios en CAD) -->
         <section class="listings">
           <div class="listing">
-            <span class="listing__type">Apartamento</span>
-            <span class="listing__loc">Le Plateau-Mont-Royal, Montréal</span>
-            <span class="listing__price">1 650 $ CA<span>/mois</span></span>
+            <span class="listing__type">{{ t('property.types.apartamento') }}</span>
+            <span class="listing__loc">{{ t('landing.listings.one.loc') }}</span>
+            <span class="listing__price">{{ t('landing.listings.one.price') }}<span>{{ t('landing.listings.perMonth') }}</span></span>
           </div>
           <div class="listing">
-            <span class="listing__type">Condominio</span>
-            <span class="listing__loc">Chomedey, Laval</span>
-            <span class="listing__price">1 950 $ CA<span>/mois</span></span>
+            <span class="listing__type">{{ t('property.types.condominio') }}</span>
+            <span class="listing__loc">{{ t('landing.listings.two.loc') }}</span>
+            <span class="listing__price">{{ t('landing.listings.two.price') }}<span>{{ t('landing.listings.perMonth') }}</span></span>
           </div>
           <div class="listing">
-            <span class="listing__type">Cuarto</span>
-            <span class="listing__loc">Villeray, Montréal</span>
-            <span class="listing__price">780 $ CA<span>/mois</span></span>
+            <span class="listing__type">{{ t('property.types.cuarto') }}</span>
+            <span class="listing__loc">{{ t('landing.listings.three.loc') }}</span>
+            <span class="listing__price">{{ t('landing.listings.three.price') }}<span>{{ t('landing.listings.perMonth') }}</span></span>
           </div>
         </section>
 
@@ -80,46 +80,43 @@ import { RouterLink } from '@angular/router';
 
         <!-- Cómo funciona -->
         <section class="steps">
-          <h2>Cómo funciona</h2>
+          <h2>{{ t('landing.steps.title') }}</h2>
           <div class="steps__grid">
             <div class="step">
               <span class="step__n">01</span>
-              <h3>Busca</h3>
-              <p>Filtra por ciudad, barrio, tipo y precio en todo Quebec.</p>
+              <h3>{{ t('landing.steps.one.title') }}</h3>
+              <p>{{ t('landing.steps.one.text') }}</p>
             </div>
             <div class="step">
               <span class="step__n">02</span>
-              <h3>Recórrela en 3D</h3>
-              <p>Entra a cada ambiente con el recorrido virtual y consulta sus medidas exactas.</p>
+              <h3>{{ t('landing.steps.two.title') }}</h3>
+              <p>{{ t('landing.steps.two.text') }}</p>
             </div>
             <div class="step">
               <span class="step__n">03</span>
-              <h3>Alquila</h3>
-              <p>Contacta al propietario y cierra el alquiler con confianza.</p>
+              <h3>{{ t('landing.steps.three.title') }}</h3>
+              <p>{{ t('landing.steps.three.text') }}</p>
             </div>
           </div>
           <div class="types">
-            <span>Cuartos</span><span>Casa</span><span>Apartamento</span>
-            <span>Edificio</span><span>Comercial</span><span>Condominio</span>
+            @for (type of types; track type) {
+              <span>{{ t('property.types.' + type) }}</span>
+            }
           </div>
         </section>
 
         <!-- Servicio de escaneo 3D (propietarios) -->
         <section id="escaneo" class="scan">
           <div class="scan__text">
-            <p class="eyebrow">Para propietarios</p>
-            <h2>¿Pones una propiedad en alquiler?<br />La escaneamos en 3D.</h2>
-            <p class="lead">
-              Un técnico visita tu propiedad y captura un recorrido con Matterport.
-              Nosotros generamos el recorrido virtual, un plano rápido y las dimensiones
-              de cada ambiente. Tu anuncio se alquila antes.
-            </p>
-            <a routerLink="/auth" class="btn btn--primary">Solicitar escaneo</a>
+            <p class="eyebrow">{{ t('landing.scan.eyebrow') }}</p>
+            <h2>{{ t('landing.scan.title1') }}<br />{{ t('landing.scan.title2') }}</h2>
+            <p class="lead">{{ t('landing.scan.lead') }}</p>
+            <a routerLink="/auth" class="btn btn--primary">{{ t('landing.scan.cta') }}</a>
           </div>
           <ul class="scan__list">
-            <li><span class="scan__k">Recorrido virtual</span><span class="scan__v">navegable, ambiente por ambiente</span></li>
-            <li><span class="scan__k">Plano rápido</span><span class="scan__v">distribución a escala</span></li>
-            <li><span class="scan__k">Dimensiones</span><span class="scan__v">medidas reales por ambiente</span></li>
+            <li><span class="scan__k">{{ t('landing.scan.tour.k') }}</span><span class="scan__v">{{ t('landing.scan.tour.v') }}</span></li>
+            <li><span class="scan__k">{{ t('landing.scan.plan.k') }}</span><span class="scan__v">{{ t('landing.scan.plan.v') }}</span></li>
+            <li><span class="scan__k">{{ t('landing.scan.dims.k') }}</span><span class="scan__v">{{ t('landing.scan.dims.v') }}</span></li>
           </ul>
         </section>
 
@@ -127,33 +124,30 @@ import { RouterLink } from '@angular/router';
 
         <!-- Testimonios -->
         <section class="quotes">
-          <h2>Lo que dicen en Quebec</h2>
+          <h2>{{ t('landing.quotes.title') }}</h2>
           <div class="quotes__grid">
-            <figure class="quote">
-              <blockquote>Alquilé sin visitar cinco veces. El recorrido 3D me mostró cada rincón antes de decidir.</blockquote>
-              <figcaption>Marie-Ève T.<span>Le Plateau-Mont-Royal, Montréal</span></figcaption>
-            </figure>
-            <figure class="quote">
-              <blockquote>Publiqué mi condo en Laval y el escaneo se hizo en una mañana. Se alquiló en dos semanas.</blockquote>
-              <figcaption>David R.<span>Chomedey, Laval</span></figcaption>
-            </figure>
-            <figure class="quote">
-              <blockquote>Las dimensiones exactas me ahorraron mudar muebles que no cabían. Simple y honesto.</blockquote>
-              <figcaption>Sophie L.<span>Villeray, Montréal</span></figcaption>
-            </figure>
+            @for (q of quotes; track q) {
+              <figure class="quote">
+                <blockquote>{{ t('landing.quotes.' + q + '.text') }}</blockquote>
+                <figcaption>
+                  {{ t('landing.quotes.' + q + '.name') }}
+                  <span>{{ t('landing.quotes.' + q + '.place') }}</span>
+                </figcaption>
+              </figure>
+            }
           </div>
         </section>
 
         <!-- Cierre -->
         <section class="cta">
-          <h2>Encuentra tu próximo hogar en Quebec.</h2>
-          <a routerLink="/auth" class="btn btn--primary">Explorar propiedades</a>
+          <h2>{{ t('landing.cta.title') }}</h2>
+          <a routerLink="/auth" class="btn btn--primary">{{ t('landing.cta.button') }}</a>
         </section>
       </main>
 
       <footer class="foot">
         <span class="mark">Rentaree<span class="mark__tick" aria-hidden="true"></span></span>
-        <span class="foot__note">Recorridos 3D para alquilar en Quebec · © 2026</span>
+        <span class="foot__note">{{ t('landing.footer.note') }}</span>
       </footer>
     </div>
   `,
@@ -227,4 +221,8 @@ import { RouterLink } from '@angular/router';
     }
   `],
 })
-export class LandingComponent {}
+export class LandingComponent {
+  /** Tipos que se muestran como chips (comparten claves con property.types). */
+  readonly types = ['cuarto', 'casa', 'apartamento', 'edificio', 'comercial', 'condominio'];
+  readonly quotes = ['one', 'two', 'three'];
+}

@@ -1,57 +1,62 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { ScanService, ScanRequestFull } from '../scanning/scan.service';
+import { scanStatusKey } from '../scanning/scanner-dashboard.component';
 import { Profile, UserRole, ScanStatus } from '../../core/models/database.types';
 import { buildAddress } from '../../core/util/format';
+import { errorMessage } from '../../core/util/errors';
 
-const ROLES: { value: UserRole; label: string }[] = [
-  { value: 'cliente', label: 'Cliente' },
-  { value: 'escaner', label: 'Escáner' },
-  { value: 'administrador', label: 'Administrador' },
-];
-
-const STATUS_LABEL: Record<ScanStatus, string> = {
-  solicitado: 'Solicitado',
-  agendado: 'Agendado',
-  completado: 'Completado',
-  cancelado: 'Cancelado',
-};
+const ROLES: UserRole[] = ['cliente', 'escaner', 'administrador'];
 
 type Tab = 'escaneos' | 'usuarios';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TranslocoDirective],
   template: `
+    <ng-container *transloco="let t">
     <header class="bar">
-      <a routerLink="/quebec-city" class="back">← Propiedades</a>
-      <span class="title">Administración</span>
+      <a routerLink="/quebec-city" class="back">{{ t('nav.backToProperties') }}</a>
+      <span class="title">{{ t('admin.title') }}</span>
       <span class="mark">Rentaree<span class="mark__tick" aria-hidden="true"></span></span>
     </header>
 
     <main class="wrap">
       <div class="seg">
-        <button [class.on]="tab() === 'escaneos'" (click)="tab.set('escaneos')">Escaneos</button>
-        <button [class.on]="tab() === 'usuarios'" (click)="tab.set('usuarios')">Usuarios</button>
+        <button [class.on]="tab() === 'escaneos'" (click)="tab.set('escaneos')">
+          {{ t('admin.tabs.scans') }}
+        </button>
+        <button [class.on]="tab() === 'usuarios'" (click)="tab.set('usuarios')">
+          {{ t('admin.tabs.users') }}
+        </button>
       </div>
 
-      @if (error()) { <p class="msg msg--error">{{ error() }}</p> }
+      @if (errorKey(); as key) {
+        <p class="msg msg--error">{{ t(key) }}</p>
+      } @else if (errorText()) {
+        <p class="msg msg--error">{{ errorText() }}</p>
+      }
 
       @if (tab() === 'escaneos') {
-        <h1>Solicitudes de escaneo</h1>
-        <p class="lead">Asigna un escáner a cada visita.</p>
+        <h1>{{ t('admin.scans.title') }}</h1>
+        <p class="lead">{{ t('admin.scans.lead') }}</p>
 
         @if (loading()) {
-          <p class="state">Cargando…</p>
+          <p class="state">{{ t('common.loading') }}</p>
         } @else if (requests().length === 0) {
-          <p class="state">No hay solicitudes de escaneo.</p>
+          <p class="state">{{ t('admin.scans.empty') }}</p>
         } @else {
           <table class="tbl">
             <thead>
               <tr>
-                <th>Expediente</th><th>Propiedad</th><th>Estado</th><th>Escáner asignado</th><th></th>
+                <th>{{ t('admin.scans.expediente') }}</th>
+                <th>{{ t('admin.scans.property') }}</th>
+                <th>{{ t('admin.scans.status') }}</th>
+                <th>{{ t('admin.scans.scanner') }}</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -59,18 +64,22 @@ type Tab = 'escaneos' | 'usuarios';
                 <tr>
                   <td class="mono acc">{{ r.properties.expediente }}</td>
                   <td>{{ addr(r) }}</td>
-                  <td><span class="status" [attr.data-s]="r.status">{{ label(r.status) }}</span></td>
+                  <td>
+                    <span class="status" [attr.data-s]="r.status">{{ t(statusKey(r.status)) }}</span>
+                  </td>
                   <td>
                     <select class="input input--sm" [ngModel]="r.scanner_id ?? ''"
                       (ngModelChange)="assign(r, $event)">
-                      <option value="">— Sin asignar —</option>
+                      <option value="">{{ t('admin.scans.unassigned') }}</option>
                       @for (s of scanners(); track s.id) {
                         <option [value]="s.id">{{ s.first_name }} {{ s.last_name }}</option>
                       }
                     </select>
                   </td>
                   <td>
-                    <a class="link" [routerLink]="['/propiedad', r.property_id]">Ver ficha</a>
+                    <a class="link" [routerLink]="['/propiedad', r.property_id]">
+                      {{ t('admin.scans.view') }}
+                    </a>
                   </td>
                 </tr>
               }
@@ -78,15 +87,20 @@ type Tab = 'escaneos' | 'usuarios';
           </table>
         }
       } @else {
-        <h1>Usuarios</h1>
-        <p class="lead">Cambia el rol de acceso de cada persona.</p>
+        <h1>{{ t('admin.users.title') }}</h1>
+        <p class="lead">{{ t('admin.users.lead') }}</p>
 
         @if (loading()) {
-          <p class="state">Cargando…</p>
+          <p class="state">{{ t('common.loading') }}</p>
         } @else {
           <table class="tbl">
             <thead>
-              <tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th></tr>
+              <tr>
+                <th>{{ t('admin.users.name') }}</th>
+                <th>{{ t('admin.users.email') }}</th>
+                <th>{{ t('admin.users.phone') }}</th>
+                <th>{{ t('admin.users.role') }}</th>
+              </tr>
             </thead>
             <tbody>
               @for (p of profiles(); track p.id) {
@@ -97,8 +111,8 @@ type Tab = 'escaneos' | 'usuarios';
                   <td>
                     <select class="input input--sm" [ngModel]="p.role"
                       (ngModelChange)="changeRole(p, $event)">
-                      @for (r of roles; track r.value) {
-                        <option [value]="r.value">{{ r.label }}</option>
+                      @for (role of roles; track role) {
+                        <option [value]="role">{{ t('roles.' + role) }}</option>
                       }
                     </select>
                   </td>
@@ -109,6 +123,7 @@ type Tab = 'escaneos' | 'usuarios';
         }
       }
     </main>
+    </ng-container>
   `,
   styles: [`
     :host { display: block; min-height: 100dvh; }
@@ -158,7 +173,10 @@ export class AdminComponent implements OnInit {
   readonly requests = signal<ScanRequestFull[]>([]);
   readonly profiles = signal<Profile[]>([]);
   readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
+
+  // Claves de traducción; el texto crudo solo para errores de Supabase sin clave.
+  readonly errorKey = signal<string | null>(null);
+  readonly errorText = signal<string | null>(null);
 
   readonly scanners = computed(() =>
     this.profiles().filter((p) => p.role === 'escaner' || p.role === 'administrador'),
@@ -174,14 +192,14 @@ export class AdminComponent implements OnInit {
       this.requests.set(reqs);
       this.profiles.set(profs);
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudieron cargar los datos.');
+      this.showError(e, 'admin.errors.load');
     } finally {
       this.loading.set(false);
     }
   }
 
-  label(s: ScanStatus): string {
-    return STATUS_LABEL[s];
+  statusKey(s: ScanStatus): string {
+    return scanStatusKey(s);
   }
 
   addr(r: ScanRequestFull): string {
@@ -189,22 +207,34 @@ export class AdminComponent implements OnInit {
   }
 
   async assign(r: ScanRequestFull, scannerId: string): Promise<void> {
-    this.error.set(null);
+    this.clearError();
     try {
       await this.svc.assignScanner(r.id, r.property_id, scannerId || null);
       this.requests.set(await this.svc.listRequests());
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo asignar el escáner.');
+      this.showError(e, 'admin.errors.assign');
     }
   }
 
   async changeRole(p: Profile, role: UserRole): Promise<void> {
-    this.error.set(null);
+    this.clearError();
     try {
       await this.svc.setRole(p.id, role);
       this.profiles.set(await this.svc.listProfiles());
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cambiar el rol.');
+      this.showError(e, 'admin.errors.role');
     }
+  }
+
+  /** Con mensaje de Supabase se muestra tal cual; sin él, la clave genérica. */
+  private showError(e: unknown, fallbackKey: string): void {
+    const raw = errorMessage(e, '');
+    this.errorKey.set(raw ? null : fallbackKey);
+    this.errorText.set(raw || null);
+  }
+
+  private clearError(): void {
+    this.errorKey.set(null);
+    this.errorText.set(null);
   }
 }

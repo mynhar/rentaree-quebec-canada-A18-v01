@@ -1,0 +1,452 @@
+{
+  "common": {
+    "language": "Language",
+    "languages": {
+      "fr": "French",
+      "en": "English",
+      "es": "Spanish"
+    },
+    "or": "or",
+    "cancel": "Cancel",
+    "back": "Back",
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "genericError": "Something went wrong. Please try again."
+  },
+  "nav": {
+    "properties": "Properties",
+    "backToProperties": "← Properties",
+    "scans": "Scans",
+    "admin": "Admin",
+    "newProperty": "New property",
+    "signOut": "Sign out"
+  },
+  "roles": {
+    "cliente": "Client",
+    "escaner": "Scanner",
+    "administrador": "Administrator"
+  },
+  "provinces": {
+    "QC": "Quebec",
+    "ON": "Ontario",
+    "BC": "British Columbia",
+    "AB": "Alberta",
+    "MB": "Manitoba",
+    "SK": "Saskatchewan",
+    "NS": "Nova Scotia",
+    "NB": "New Brunswick",
+    "NL": "Newfoundland and Labrador",
+    "PE": "Prince Edward Island",
+    "NT": "Northwest Territories",
+    "YT": "Yukon",
+    "NU": "Nunavut"
+  },
+  "auth": {
+    "brand": {
+      "note": "3D tours and real room dimensions for every property, in Quebec.",
+      "width": "6.40 m",
+      "length": "4.10 m"
+    },
+    "tabs": {
+      "aria": "Sign in or create an account",
+      "login": "Sign in",
+      "register": "Create account"
+    },
+    "google": "Continue with Google",
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone"
+    },
+    "login": {
+      "submit": "Sign in",
+      "submitting": "Signing in…"
+    },
+    "register": {
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "confirmEmail": "We sent you an email to confirm your account. Check it to continue."
+    },
+    "hints": {
+      "email": "Enter a valid email address.",
+      "password": "Enter your password.",
+      "phone": "Enter a valid phone number.",
+      "passwordMin": "At least 8 characters."
+    },
+    "errors": {
+      "invalidCredentials": "Incorrect email or password.",
+      "alreadyRegistered": "That email is already registered. Sign in instead.",
+      "emailNotConfirmed": "Confirm your email before signing in.",
+      "weakPassword": "The password does not meet the requirements."
+    }
+  },
+  "profile": {
+    "complete": {
+      "title": "Complete your profile",
+      "lead": "We need your phone number to publish properties and schedule scanning visits.",
+      "phone": "Phone",
+      "hint": "Enter a valid phone number.",
+      "submit": "Save and continue"
+    }
+  },
+  "landing": {
+    "badge": "3D interiors",
+    "signIn": "Sign in",
+    "hero": {
+      "eyebrow": "3D technology · Quebec",
+      "title1": "Rent knowing",
+      "title2": "exactly what you're renting.",
+      "lead": "Every property includes photos, a 3D tour and the real dimensions of each room, taken from the scan itself. No surprises on move-in day.",
+      "ctaExplore": "Explore properties",
+      "ctaScan": "Scan my property"
+    },
+    "plan": {
+      "salon": "Living room",
+      "cuisine": "Kitchen",
+      "chambre": "Bedroom",
+      "bureau": "Office",
+      "width": "9.60 m"
+    },
+    "listings": {
+      "perMonth": "/month",
+      "one": {
+        "loc": "Le Plateau-Mont-Royal, Montréal",
+        "price": "$1,650 CA"
+      },
+      "two": {
+        "loc": "Chomedey, Laval",
+        "price": "$1,950 CA"
+      },
+      "three": {
+        "loc": "Villeray, Montréal",
+        "price": "$780 CA"
+      }
+    },
+    "steps": {
+      "title": "How it works",
+      "one": {
+        "title": "Search",
+        "text": "Filter by city, neighbourhood, type and rent across Quebec."
+      },
+      "two": {
+        "title": "Tour it in 3D",
+        "text": "Step into every room with the virtual tour and check its exact measurements."
+      },
+      "three": {
+        "title": "Rent",
+        "text": "Contact the owner and sign the lease with confidence."
+      }
+    },
+    "scan": {
+      "eyebrow": "For owners",
+      "title1": "Listing a property for rent?",
+      "title2": "We'll scan it in 3D.",
+      "lead": "A technician visits your property and captures a tour with Matterport. We produce the virtual tour, a floor plan and the dimensions of every room. Your listing rents faster.",
+      "cta": "Request a scan",
+      "tour": {
+        "k": "Virtual tour",
+        "v": "walkable, room by room"
+      },
+      "plan": {
+        "k": "Floor plan",
+        "v": "layout to scale"
+      },
+      "dims": {
+        "k": "Dimensions",
+        "v": "real measurements per room"
+      }
+    },
+    "quotes": {
+      "title": "What people say in Quebec",
+      "one": {
+        "text": "I rented without visiting five times. The 3D tour showed me every corner before I decided.",
+        "name": "Marie-Ève T.",
+        "place": "Le Plateau-Mont-Royal, Montréal"
+      },
+      "two": {
+        "text": "I listed my condo in Laval and the scan was done in one morning. It rented in two weeks.",
+        "name": "David R.",
+        "place": "Chomedey, Laval"
+      },
+      "three": {
+        "text": "The exact dimensions saved me from moving furniture that wouldn't fit. Simple and honest.",
+        "name": "Sophie L.",
+        "place": "Villeray, Montréal"
+      }
+    },
+    "cta": {
+      "title": "Find your next home in Quebec.",
+      "button": "Explore properties"
+    },
+    "footer": {
+      "note": "3D tours for renting in Quebec · © 2026"
+    }
+  },
+  "property": {
+    "perMonth": "/month",
+    "types": {
+      "cuarto": "Room",
+      "casa": "House",
+      "apartamento": "Apartment",
+      "edificio": "Building",
+      "comercial": "Commercial",
+      "condominio": "Condo",
+      "otro": "Other"
+    },
+    "search": {
+      "placeholder": "City, address or neighbourhood"
+    },
+    "filters": {
+      "button": "Filters",
+      "mine": "My properties",
+      "type": "Type",
+      "price": "Rent (CAD / month)",
+      "min": "Min",
+      "max": "Max",
+      "clear": "Clear filters"
+    },
+    "results": "{{count}} results",
+    "view": {
+      "list": "List",
+      "map": "Map",
+      "split": "Split"
+    },
+    "notice": {
+      "completePhone": "Add your phone number so you can publish properties.",
+      "completeNow": "Complete now"
+    },
+    "list": {
+      "searching": "Searching properties…",
+      "emptyTitle": "No results",
+      "emptySub": "Adjust the filters or widen the search area."
+    },
+    "card": {
+      "bedroomsShort": "bd",
+      "bathroomsShort": "ba",
+      "see": "View listing →",
+      "edit": "Edit"
+    },
+    "photos": {
+      "dropTitle": "Drop your photos here",
+      "dropNote": "JPG, PNG or WebP · max. {{mb}} MB per photo · up to {{max}} photos",
+      "choose": "Choose files",
+      "full": "You've reached the maximum of {{max}} photos.",
+      "count": "{{count}} of {{max}} · the first photo is the cover image.",
+      "cover": "Cover",
+      "saved": "Saved",
+      "movePrev": "Move earlier",
+      "moveNext": "Move later",
+      "remove": "Remove photo",
+      "removeSaved": "Delete saved photo",
+      "rejected": {
+        "type": "“{{name}}”: unsupported format (use JPG, PNG or WebP).",
+        "size": "“{{name}}”: larger than {{mb}} MB.",
+        "max": "“{{name}}”: you would exceed the maximum of {{max}} photos."
+      }
+    },
+    "form": {
+      "title": "New property",
+      "lead": "Register a property to list it for rent.",
+      "contact": {
+        "title": "Contact details",
+        "lead": "Pre-filled from your profile — change them if needed.",
+        "emailNote": "Cannot be changed here."
+      },
+      "typeTitle": "Property type",
+      "details": {
+        "title": "Details",
+        "lead": "Dimensions are filled in by the 3D scan; you can leave them empty."
+      },
+      "fields": {
+        "firstName": "First name",
+        "lastName": "Last name",
+        "phone": "Phone",
+        "email": "Email",
+        "title": "Title",
+        "titlePlaceholder": "Lumineux 4½ au Plateau",
+        "price": "Rent (CAD/month)",
+        "bedrooms": "Bedrooms",
+        "bathrooms": "Bathrooms",
+        "area": "Area (m²)",
+        "description": "Description",
+        "unit": "Unit number",
+        "unitNote": "Optional. It will be combined: 5-123 Main St.",
+        "street": "Street number and name",
+        "city": "City",
+        "province": "Province / Territory",
+        "postalCode": "Postal code",
+        "neighbourhood": "Neighbourhood",
+        "latitude": "Latitude",
+        "longitude": "Longitude"
+      },
+      "location": {
+        "title": "Property location",
+        "lead": "Where will the assessment visit take place?"
+      },
+      "gps": {
+        "title": "GPS coordinates",
+        "lead": "To show the location on the map.",
+        "locate": "Look up from the address",
+        "locating": "Searching…",
+        "incomplete": "Fill in street, city and postal code to look up the coordinates.",
+        "found": "Location found: {{place}}",
+        "notFound": "We couldn't find that address. You can enter the coordinates by hand.",
+        "failed": "The lookup failed. Enter the coordinates by hand."
+      },
+      "photos": {
+        "title": "Photos",
+        "lead": "Optional. They are uploaded when you register the property; the first one is the cover image.",
+        "editLead": "Add or remove photos. The first one is the cover image."
+      },
+      "scan": {
+        "title": "Request a 3D scan",
+        "lead": "A technician visits the property and captures the tour with Matterport."
+      },
+      "submit": "Register property",
+      "submitting": "Registering…",
+      "uploading": "Uploading photos {{done}}/{{total}}…",
+      "invalid": "Check the highlighted fields.",
+      "error": "The property could not be registered. Please try again.",
+      "photoError": "The property was registered, but the photos could not be uploaded. Add them later from the listing.",
+      "success": {
+        "eyebrow": "Property registered",
+        "title": "Your file is open.",
+        "lead": "Keep this number: it identifies all the information about your property.",
+        "scanRequested": "We'll contact you to schedule the 3D scanning visit.",
+        "seeAll": "View my properties",
+        "another": "Register another"
+      },
+      "editTitle": "Edit property",
+      "editLead": "Update your property information.",
+      "save": "Save changes",
+      "photoDeleteError": "Could not delete the photo. Please try again.",
+      "state": {
+        "title": "File and status",
+        "lead": "The status determines whether the property appears in searches.",
+        "expediente": "File",
+        "expedienteNote": "Generated by the system. Not editable.",
+        "status": "Status"
+      }
+    },
+    "detail": {
+      "loading": "Loading property…",
+      "notFoundTitle": "Property not found",
+      "notFoundBack": "Back to properties",
+      "facts": {
+        "type": "Type",
+        "area": "Area",
+        "bedrooms": "Bedrooms",
+        "bathrooms": "Bathrooms"
+      },
+      "tabs": {
+        "photos": "Photos",
+        "tour": "3D tour",
+        "plan": "Floor plan"
+      },
+      "tourTitle": "3D tour of the property",
+      "planAlt": "Floor plan of the property",
+      "photoAlt": "Photo of the property",
+      "prevPhoto": "Previous photo",
+      "nextPhoto": "Next photo",
+      "noScan": "This property doesn't have a 3D scan yet.",
+      "dimensions": {
+        "title": "Dimensions",
+        "lead": "Measurements taken from the 3D scan.",
+        "room": "Room",
+        "width": "Width",
+        "length": "Length",
+        "area": "Area",
+        "empty": "The dimensions of this property haven't been recorded yet."
+      },
+      "description": "Description",
+      "contact": {
+        "title": "Contact",
+        "email": "Send email",
+        "note": "Mention file {{expediente}} when you write."
+      },
+      "edit": "Edit"
+    },
+    "status": {
+      "borrador": "Draft",
+      "disponible": "Available",
+      "alquilada": "Rented",
+      "inactiva": "Inactive"
+    }
+  },
+  "scan": {
+    "status": {
+      "solicitado": "Requested",
+      "agendado": "Scheduled",
+      "completado": "Completed",
+      "cancelado": "Cancelled"
+    }
+  },
+  "scanner": {
+    "title": "Scanner dashboard",
+    "heading": "Assigned scans",
+    "lead": "Record the 3D tour and the dimensions after each visit.",
+    "loading": "Loading requests…",
+    "emptyTitle": "No scans assigned",
+    "emptyText": "When an administrator assigns you a visit, it will appear here.",
+    "tour": {
+      "label": "3D tour (Matterport)",
+      "note": "In Matterport: Share → Embed. Paste the model URL here."
+    },
+    "photos": {
+      "label": "Property photos"
+    },
+    "dims": {
+      "room": "Room",
+      "width": "Width (m)",
+      "length": "Length (m)",
+      "area": "Area (m²)",
+      "roomPlaceholder": "Living room",
+      "add": "+ Room",
+      "remove": "Remove room",
+      "total": "Total: {{total}} m²"
+    },
+    "save": "Save and complete",
+    "saving": "Saving…",
+    "uploading": "Uploading photos {{done}}/{{total}}…",
+    "saved": "Saved. It's now on the listing.",
+    "viewProperty": "View listing",
+    "errors": {
+      "tourHost": "The link must be from Matterport, Kuula or Polycam.",
+      "save": "Could not save. Please try again.",
+      "deletePhoto": "Could not delete the photo. Please try again."
+    }
+  },
+  "admin": {
+    "title": "Administration",
+    "tabs": {
+      "scans": "Scans",
+      "users": "Users"
+    },
+    "scans": {
+      "title": "Scan requests",
+      "lead": "Assign a scanner to each visit.",
+      "empty": "There are no scan requests.",
+      "expediente": "File",
+      "property": "Property",
+      "status": "Status",
+      "scanner": "Assigned scanner",
+      "unassigned": "— Unassigned —",
+      "view": "View listing"
+    },
+    "users": {
+      "title": "Users",
+      "lead": "Change each person's access role.",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "role": "Role"
+    },
+    "errors": {
+      "load": "The data could not be loaded.",
+      "assign": "The scanner could not be assigned.",
+      "role": "The role could not be changed."
+    }
+  }
+}

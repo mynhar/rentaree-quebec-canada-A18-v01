@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Session } from '@supabase/supabase-js';
 import { SupabaseService } from '../supabase/supabase.service';
+import { LanguageService } from '../i18n/language.service';
 import { Profile, UserRole } from '../models/database.types';
 
 export interface SignUpData {
@@ -14,6 +15,7 @@ export interface SignUpData {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly sb = inject(SupabaseService).client;
+  private readonly language = inject(LanguageService);
 
   // Estado reactivo
   readonly session = signal<Session | null>(null);
@@ -66,7 +68,10 @@ export class AuthService {
       .eq('id', userId)
       .single();
     if (!error && data) {
-      this.profile.set(data as Profile);
+      const profile = data as Profile;
+      this.profile.set(profile);
+      // El idioma guardado del usuario manda sobre el del navegador.
+      this.language.applyFromProfile(profile.language);
     }
   }
 

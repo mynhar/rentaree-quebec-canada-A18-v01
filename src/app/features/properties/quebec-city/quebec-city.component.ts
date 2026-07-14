@@ -7,83 +7,96 @@ import { PROPERTY_TYPES, DEFAULT_MAP_CENTER } from '../../../core/config/constan
 import { PropertyType } from '../../../core/models/database.types';
 import { PropertyListComponent } from './property-list.component';
 import { PropertyMapComponent } from './property-map.component';
+import { TranslocoDirective } from '@jsverse/transloco';
+import { LanguageSwitcherComponent } from '../../../core/i18n/language-switcher.component';
 
 type ViewMode = 'list' | 'map' | 'split';
 
 @Component({
   selector: 'app-quebec-city',
   standalone: true,
-  imports: [RouterLink, PropertyListComponent, PropertyMapComponent],
+  imports: [
+    RouterLink,
+    PropertyListComponent,
+    PropertyMapComponent,
+    TranslocoDirective,
+    LanguageSwitcherComponent,
+  ],
   template: `
+    <ng-container *transloco="let tr">
     <header class="bar">
       <a routerLink="/" class="mark">Rentaree<span class="mark__tick" aria-hidden="true"></span></a>
 
       <div class="search">
-        <input class="input" type="search" placeholder="Ciudad, dirección o barrio"
+        <input class="input" type="search" [placeholder]="tr('property.search.placeholder')"
           [value]="filters().text" (input)="onText($any($event.target).value)" />
       </div>
 
       <div class="bar__right">
+        <app-language-switcher />
         @if (auth.role() === 'escaner' || auth.role() === 'administrador') {
-          <a routerLink="/escaner" class="role-link">Escaneos</a>
+          <a routerLink="/escaner" class="role-link">{{ tr('nav.scans') }}</a>
         }
         @if (auth.role() === 'administrador') {
-          <a routerLink="/admin" class="role-link">Admin</a>
+          <a routerLink="/admin" class="role-link">{{ tr('nav.admin') }}</a>
         }
-        <a routerLink="/quebec-city/nueva" class="btn btn--primary">Nueva propiedad</a>
+        <a routerLink="/quebec-city/nueva" class="btn btn--primary">{{ tr('nav.newProperty') }}</a>
         <span class="user">{{ auth.profile()?.first_name }} {{ auth.profile()?.last_name }}</span>
-        <button class="btn btn--ghost" (click)="salir()">Salir</button>
+        <button class="btn btn--ghost" (click)="salir()">{{ tr('nav.signOut') }}</button>
       </div>
     </header>
 
     @if (auth.needsProfileCompletion()) {
       <div class="notice">
-        Completa tu teléfono para poder publicar propiedades.
-        <a routerLink="/completar-perfil">Completar ahora</a>
+        {{ tr('property.notice.completePhone') }}
+        <a routerLink="/completar-perfil">{{ tr('property.notice.completeNow') }}</a>
       </div>
     }
 
     <div class="toolbar">
       <button class="chip-btn" [class.on]="filtersOpen()" (click)="filtersOpen.set(!filtersOpen())">
-        Filtros @if (activeFilterCount() > 0) { <span class="count">{{ activeFilterCount() }}</span> }
+        {{ tr('property.filters.button') }}
+        @if (activeFilterCount() > 0) { <span class="count">{{ activeFilterCount() }}</span> }
       </button>
 
       <label class="mine">
         <input type="checkbox" [checked]="filters().onlyMine" (change)="onMine($any($event.target).checked)" />
-        Mis propiedades
+        {{ tr('property.filters.mine') }}
       </label>
 
-      <span class="results">{{ loading() ? '…' : properties().length }} resultados</span>
+      <span class="results">
+        {{ loading() ? '…' : tr('property.results', { count: properties().length }) }}
+      </span>
 
       <div class="seg">
-        <button [class.on]="mode() === 'list'" (click)="mode.set('list')">Lista</button>
-        <button [class.on]="mode() === 'map'" (click)="mode.set('map')">Mapa</button>
-        <button [class.on]="mode() === 'split'" (click)="mode.set('split')">Dividir</button>
+        <button [class.on]="mode() === 'list'" (click)="mode.set('list')">{{ tr('property.view.list') }}</button>
+        <button [class.on]="mode() === 'map'" (click)="mode.set('map')">{{ tr('property.view.map') }}</button>
+        <button [class.on]="mode() === 'split'" (click)="mode.set('split')">{{ tr('property.view.split') }}</button>
       </div>
     </div>
 
     @if (filtersOpen()) {
       <div class="filters">
         <div class="filters__group">
-          <span class="filters__label">Tipo</span>
+          <span class="filters__label">{{ tr('property.filters.type') }}</span>
           <div class="types">
-            @for (t of types; track t.value) {
-              <button class="type-chip" [class.on]="filters().types.includes(t.value)"
-                (click)="toggleType(t.value)">{{ t.label }}</button>
+            @for (type of types; track type.value) {
+              <button class="type-chip" [class.on]="filters().types.includes(type.value)"
+                (click)="toggleType(type.value)">{{ tr(type.labelKey) }}</button>
             }
           </div>
         </div>
         <div class="filters__group">
-          <span class="filters__label">Precio (CAD / mois)</span>
+          <span class="filters__label">{{ tr('property.filters.price') }}</span>
           <div class="price">
-            <input class="input" type="number" min="0" placeholder="Mín"
+            <input class="input" type="number" min="0" [placeholder]="tr('property.filters.min')"
               [value]="filters().priceMin ?? ''" (input)="onPrice('min', $any($event.target).value)" />
             <span>—</span>
-            <input class="input" type="number" min="0" placeholder="Máx"
+            <input class="input" type="number" min="0" [placeholder]="tr('property.filters.max')"
               [value]="filters().priceMax ?? ''" (input)="onPrice('max', $any($event.target).value)" />
           </div>
         </div>
-        <button class="clear" (click)="clearFilters()">Limpiar filtros</button>
+        <button class="clear" (click)="clearFilters()">{{ tr('property.filters.clear') }}</button>
       </div>
     }
 
@@ -105,6 +118,7 @@ type ViewMode = 'list' | 'map' | 'split';
           [selectedId]="selectedId()" (markerSelect)="onSelect($event)" />
       }
     </div>
+    </ng-container>
   `,
   styles: [`
     :host { display: flex; flex-direction: column; height: 100dvh; }

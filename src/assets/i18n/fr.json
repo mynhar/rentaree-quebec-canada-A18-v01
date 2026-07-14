@@ -1,0 +1,452 @@
+{
+  "common": {
+    "language": "Langue",
+    "languages": {
+      "fr": "Français",
+      "en": "Anglais",
+      "es": "Espagnol"
+    },
+    "or": "ou",
+    "cancel": "Annuler",
+    "back": "Retour",
+    "loading": "Chargement…",
+    "saving": "Enregistrement…",
+    "genericError": "Une erreur est survenue. Veuillez réessayer."
+  },
+  "nav": {
+    "properties": "Propriétés",
+    "backToProperties": "← Propriétés",
+    "scans": "Numérisations",
+    "admin": "Admin",
+    "newProperty": "Nouvelle propriété",
+    "signOut": "Déconnexion"
+  },
+  "roles": {
+    "cliente": "Client",
+    "escaner": "Technicien",
+    "administrador": "Administrateur"
+  },
+  "provinces": {
+    "QC": "Québec",
+    "ON": "Ontario",
+    "BC": "Colombie-Britannique",
+    "AB": "Alberta",
+    "MB": "Manitoba",
+    "SK": "Saskatchewan",
+    "NS": "Nouvelle-Écosse",
+    "NB": "Nouveau-Brunswick",
+    "NL": "Terre-Neuve-et-Labrador",
+    "PE": "Île-du-Prince-Édouard",
+    "NT": "Territoires du Nord-Ouest",
+    "YT": "Yukon",
+    "NU": "Nunavut"
+  },
+  "auth": {
+    "brand": {
+      "note": "Visites 3D et dimensions réelles de chaque propriété, au Québec.",
+      "width": "6,40 m",
+      "length": "4,10 m"
+    },
+    "tabs": {
+      "aria": "Se connecter ou créer un compte",
+      "login": "Se connecter",
+      "register": "Créer un compte"
+    },
+    "google": "Continuer avec Google",
+    "fields": {
+      "email": "Courriel",
+      "password": "Mot de passe",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "phone": "Téléphone"
+    },
+    "login": {
+      "submit": "Se connecter",
+      "submitting": "Connexion…"
+    },
+    "register": {
+      "submit": "Créer un compte",
+      "submitting": "Création du compte…",
+      "confirmEmail": "Nous vous avons envoyé un courriel pour confirmer votre compte. Consultez-le pour continuer."
+    },
+    "hints": {
+      "email": "Saisissez un courriel valide.",
+      "password": "Saisissez votre mot de passe.",
+      "phone": "Saisissez un numéro de téléphone valide.",
+      "passwordMin": "Minimum 8 caractères."
+    },
+    "errors": {
+      "invalidCredentials": "Courriel ou mot de passe incorrect.",
+      "alreadyRegistered": "Ce courriel est déjà inscrit. Connectez-vous.",
+      "emailNotConfirmed": "Confirmez votre courriel avant de vous connecter.",
+      "weakPassword": "Le mot de passe ne respecte pas les exigences."
+    }
+  },
+  "profile": {
+    "complete": {
+      "title": "Complétez votre profil",
+      "lead": "Nous avons besoin de votre numéro de téléphone pour publier des propriétés et planifier les visites de numérisation.",
+      "phone": "Téléphone",
+      "hint": "Saisissez un numéro de téléphone valide.",
+      "submit": "Enregistrer et continuer"
+    }
+  },
+  "landing": {
+    "badge": "Intérieurs en 3D",
+    "signIn": "Se connecter",
+    "hero": {
+      "eyebrow": "Technologie 3D · Québec",
+      "title1": "Louez en sachant",
+      "title2": "exactement ce que vous louez.",
+      "lead": "Chaque propriété comprend des photos, une visite 3D et les dimensions réelles de chaque pièce, extraites de la numérisation elle-même. Aucune surprise à l'arrivée.",
+      "ctaExplore": "Explorer les propriétés",
+      "ctaScan": "Numériser ma propriété"
+    },
+    "plan": {
+      "salon": "Salon",
+      "cuisine": "Cuisine",
+      "chambre": "Chambre",
+      "bureau": "Bureau",
+      "width": "9,60 m"
+    },
+    "listings": {
+      "perMonth": "/mois",
+      "one": {
+        "loc": "Le Plateau-Mont-Royal, Montréal",
+        "price": "1 650 $ CA"
+      },
+      "two": {
+        "loc": "Chomedey, Laval",
+        "price": "1 950 $ CA"
+      },
+      "three": {
+        "loc": "Villeray, Montréal",
+        "price": "780 $ CA"
+      }
+    },
+    "steps": {
+      "title": "Comment ça marche",
+      "one": {
+        "title": "Cherchez",
+        "text": "Filtrez par ville, quartier, type et loyer partout au Québec."
+      },
+      "two": {
+        "title": "Visitez en 3D",
+        "text": "Entrez dans chaque pièce avec la visite virtuelle et consultez ses mesures exactes."
+      },
+      "three": {
+        "title": "Louez",
+        "text": "Contactez le propriétaire et signez le bail en toute confiance."
+      }
+    },
+    "scan": {
+      "eyebrow": "Pour les propriétaires",
+      "title1": "Vous mettez une propriété en location?",
+      "title2": "Nous la numérisons en 3D.",
+      "lead": "Un technicien visite votre propriété et capture une visite avec Matterport. Nous produisons la visite virtuelle, un plan et les dimensions de chaque pièce. Votre annonce se loue plus vite.",
+      "cta": "Demander une numérisation",
+      "tour": {
+        "k": "Visite virtuelle",
+        "v": "navigable, pièce par pièce"
+      },
+      "plan": {
+        "k": "Plan",
+        "v": "distribution à l'échelle"
+      },
+      "dims": {
+        "k": "Dimensions",
+        "v": "mesures réelles par pièce"
+      }
+    },
+    "quotes": {
+      "title": "Ce qu'on en dit au Québec",
+      "one": {
+        "text": "J'ai loué sans visiter cinq fois. La visite 3D m'a montré chaque recoin avant de décider.",
+        "name": "Marie-Ève T.",
+        "place": "Le Plateau-Mont-Royal, Montréal"
+      },
+      "two": {
+        "text": "J'ai publié mon condo à Laval et la numérisation s'est faite en une matinée. Il s'est loué en deux semaines.",
+        "name": "David R.",
+        "place": "Chomedey, Laval"
+      },
+      "three": {
+        "text": "Les dimensions exactes m'ont évité de déménager des meubles qui n'entraient pas. Simple et honnête.",
+        "name": "Sophie L.",
+        "place": "Villeray, Montréal"
+      }
+    },
+    "cta": {
+      "title": "Trouvez votre prochain chez-vous au Québec.",
+      "button": "Explorer les propriétés"
+    },
+    "footer": {
+      "note": "Visites 3D pour louer au Québec · © 2026"
+    }
+  },
+  "property": {
+    "perMonth": "/mois",
+    "types": {
+      "cuarto": "Chambre",
+      "casa": "Maison",
+      "apartamento": "Appartement",
+      "edificio": "Immeuble",
+      "comercial": "Commercial",
+      "condominio": "Condo",
+      "otro": "Autre"
+    },
+    "search": {
+      "placeholder": "Ville, adresse ou quartier"
+    },
+    "filters": {
+      "button": "Filtres",
+      "mine": "Mes propriétés",
+      "type": "Type",
+      "price": "Loyer (CAD / mois)",
+      "min": "Min",
+      "max": "Max",
+      "clear": "Effacer les filtres"
+    },
+    "results": "{{count}} résultats",
+    "view": {
+      "list": "Liste",
+      "map": "Carte",
+      "split": "Diviser"
+    },
+    "notice": {
+      "completePhone": "Ajoutez votre numéro de téléphone pour pouvoir publier des propriétés.",
+      "completeNow": "Compléter maintenant"
+    },
+    "list": {
+      "searching": "Recherche de propriétés…",
+      "emptyTitle": "Aucun résultat",
+      "emptySub": "Ajustez les filtres ou élargissez la zone de recherche."
+    },
+    "card": {
+      "bedroomsShort": "ch.",
+      "bathroomsShort": "sdb.",
+      "see": "Voir la fiche →",
+      "edit": "Modifier"
+    },
+    "photos": {
+      "dropTitle": "Glissez vos photos ici",
+      "dropNote": "JPG, PNG ou WebP · max. {{mb}} Mo par photo · jusqu'à {{max}} photos",
+      "choose": "Choisir des fichiers",
+      "full": "Vous avez atteint le maximum de {{max}} photos.",
+      "count": "{{count}} sur {{max}} · la première photo est la photo de couverture.",
+      "cover": "Couverture",
+      "saved": "Enregistrée",
+      "movePrev": "Déplacer avant",
+      "moveNext": "Déplacer après",
+      "remove": "Retirer la photo",
+      "removeSaved": "Supprimer la photo enregistrée",
+      "rejected": {
+        "type": "« {{name}} » : format non pris en charge (utilisez JPG, PNG ou WebP).",
+        "size": "« {{name}} » : dépasse {{mb}} Mo.",
+        "max": "« {{name}} » : vous dépasseriez le maximum de {{max}} photos."
+      }
+    },
+    "form": {
+      "title": "Nouvelle propriété",
+      "lead": "Enregistrez une propriété pour la mettre en location.",
+      "contact": {
+        "title": "Coordonnées",
+        "lead": "Pré-remplies à partir de votre profil — modifiez-les au besoin.",
+        "emailNote": "Non modifiable ici."
+      },
+      "typeTitle": "Type de propriété",
+      "details": {
+        "title": "Détails",
+        "lead": "Les dimensions sont complétées par la numérisation 3D; vous pouvez les laisser vides."
+      },
+      "fields": {
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "phone": "Téléphone",
+        "email": "Courriel",
+        "title": "Titre",
+        "titlePlaceholder": "Lumineux 4½ au Plateau",
+        "price": "Loyer (CAD/mois)",
+        "bedrooms": "Chambres",
+        "bathrooms": "Salles de bain",
+        "area": "Superficie (m²)",
+        "description": "Description",
+        "unit": "Numéro d'unité",
+        "unitNote": "Facultatif. Sera combiné : 5-123 Main St.",
+        "street": "Numéro et nom de rue",
+        "city": "Ville",
+        "province": "Province / Territoire",
+        "postalCode": "Code postal",
+        "neighbourhood": "Quartier",
+        "latitude": "Latitude",
+        "longitude": "Longitude"
+      },
+      "location": {
+        "title": "Localisation de l'immeuble",
+        "lead": "Où se déroulera la visite d'estimation?"
+      },
+      "gps": {
+        "title": "Coordonnées GPS",
+        "lead": "Pour afficher l'emplacement sur la carte.",
+        "locate": "Rechercher à partir de l'adresse",
+        "locating": "Recherche…",
+        "incomplete": "Renseignez la rue, la ville et le code postal pour rechercher les coordonnées.",
+        "found": "Emplacement trouvé : {{place}}",
+        "notFound": "Adresse introuvable. Vous pouvez saisir les coordonnées à la main.",
+        "failed": "La recherche a échoué. Saisissez les coordonnées à la main."
+      },
+      "photos": {
+        "title": "Photos",
+        "lead": "Facultatives. Elles sont téléversées à l'enregistrement; la première est la photo de couverture.",
+        "editLead": "Ajoutez ou supprimez des photos. La première est la photo de couverture."
+      },
+      "scan": {
+        "title": "Demander une numérisation 3D",
+        "lead": "Un technicien visite la propriété et capture la visite avec Matterport."
+      },
+      "submit": "Enregistrer la propriété",
+      "submitting": "Enregistrement…",
+      "uploading": "Téléversement des photos {{done}}/{{total}}…",
+      "invalid": "Vérifiez les champs indiqués.",
+      "error": "Impossible d'enregistrer la propriété. Veuillez réessayer.",
+      "photoError": "La propriété a été enregistrée, mais les photos n'ont pas pu être téléversées. Ajoutez-les plus tard depuis la fiche.",
+      "success": {
+        "eyebrow": "Propriété enregistrée",
+        "title": "Votre dossier est ouvert.",
+        "lead": "Conservez ce numéro : il identifie toute l'information de votre propriété.",
+        "scanRequested": "Nous vous contacterons pour planifier la visite de numérisation 3D.",
+        "seeAll": "Voir mes propriétés",
+        "another": "Enregistrer une autre"
+      },
+      "editTitle": "Modifier la propriété",
+      "editLead": "Mettez à jour les informations de votre propriété.",
+      "save": "Enregistrer les modifications",
+      "photoDeleteError": "Impossible de supprimer la photo. Veuillez réessayer.",
+      "state": {
+        "title": "Dossier et statut",
+        "lead": "Le statut détermine si la propriété apparaît dans les recherches.",
+        "expediente": "Dossier",
+        "expedienteNote": "Généré par le système. Non modifiable.",
+        "status": "Statut"
+      }
+    },
+    "detail": {
+      "loading": "Chargement de la propriété…",
+      "notFoundTitle": "Propriété introuvable",
+      "notFoundBack": "Retour aux propriétés",
+      "facts": {
+        "type": "Type",
+        "area": "Superficie",
+        "bedrooms": "Chambres",
+        "bathrooms": "Salles de bain"
+      },
+      "tabs": {
+        "photos": "Photos",
+        "tour": "Visite 3D",
+        "plan": "Plan"
+      },
+      "tourTitle": "Visite 3D de la propriété",
+      "planAlt": "Plan de la propriété",
+      "photoAlt": "Photo de la propriété",
+      "prevPhoto": "Photo précédente",
+      "nextPhoto": "Photo suivante",
+      "noScan": "Cette propriété n'a pas encore de numérisation 3D.",
+      "dimensions": {
+        "title": "Dimensions",
+        "lead": "Mesures extraites de la numérisation 3D.",
+        "room": "Pièce",
+        "width": "Largeur",
+        "length": "Longueur",
+        "area": "Superficie",
+        "empty": "Les dimensions de cette propriété n'ont pas encore été enregistrées."
+      },
+      "description": "Description",
+      "contact": {
+        "title": "Contact",
+        "email": "Envoyer un courriel",
+        "note": "Mentionnez le dossier {{expediente}} dans votre message."
+      },
+      "edit": "Modifier"
+    },
+    "status": {
+      "borrador": "Brouillon",
+      "disponible": "Disponible",
+      "alquilada": "Louée",
+      "inactiva": "Inactive"
+    }
+  },
+  "scan": {
+    "status": {
+      "solicitado": "Demandé",
+      "agendado": "Planifié",
+      "completado": "Terminé",
+      "cancelado": "Annulé"
+    }
+  },
+  "scanner": {
+    "title": "Tableau du technicien",
+    "heading": "Numérisations assignées",
+    "lead": "Enregistrez la visite 3D et les dimensions après chaque visite.",
+    "loading": "Chargement des demandes…",
+    "emptyTitle": "Aucune numérisation assignée",
+    "emptyText": "Lorsqu'un administrateur vous assignera une visite, elle apparaîtra ici.",
+    "tour": {
+      "label": "Visite 3D (Matterport)",
+      "note": "Dans Matterport : Share → Embed. Collez ici l'URL du modèle."
+    },
+    "photos": {
+      "label": "Photos de la propriété"
+    },
+    "dims": {
+      "room": "Pièce",
+      "width": "Largeur (m)",
+      "length": "Longueur (m)",
+      "area": "Superficie (m²)",
+      "roomPlaceholder": "Salon",
+      "add": "+ Pièce",
+      "remove": "Supprimer la pièce",
+      "total": "Total : {{total}} m²"
+    },
+    "save": "Enregistrer et terminer",
+    "saving": "Enregistrement…",
+    "uploading": "Téléversement des photos {{done}}/{{total}}…",
+    "saved": "Enregistré. C'est visible sur la fiche.",
+    "viewProperty": "Voir la fiche",
+    "errors": {
+      "tourHost": "Le lien doit provenir de Matterport, Kuula ou Polycam.",
+      "save": "Impossible d'enregistrer. Veuillez réessayer.",
+      "deletePhoto": "Impossible de supprimer la photo. Veuillez réessayer."
+    }
+  },
+  "admin": {
+    "title": "Administration",
+    "tabs": {
+      "scans": "Numérisations",
+      "users": "Utilisateurs"
+    },
+    "scans": {
+      "title": "Demandes de numérisation",
+      "lead": "Assignez un technicien à chaque visite.",
+      "empty": "Aucune demande de numérisation.",
+      "expediente": "Dossier",
+      "property": "Propriété",
+      "status": "Statut",
+      "scanner": "Technicien assigné",
+      "unassigned": "— Non assigné —",
+      "view": "Voir la fiche"
+    },
+    "users": {
+      "title": "Utilisateurs",
+      "lead": "Modifiez le rôle d'accès de chaque personne.",
+      "name": "Nom",
+      "email": "Courriel",
+      "phone": "Téléphone",
+      "role": "Rôle"
+    },
+    "errors": {
+      "load": "Impossible de charger les données.",
+      "assign": "Impossible d'assigner le technicien.",
+      "role": "Impossible de modifier le rôle."
+    }
+  }
+}

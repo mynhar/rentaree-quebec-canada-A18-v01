@@ -1,15 +1,17 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { PropertyCard, PropertyService } from '../property.service';
-import { PROPERTY_TYPES } from '../../../core/config/constants';
+import { TranslocoDirective } from '@jsverse/transloco';
+import { AuthService } from '../../../core/auth/auth.service';
+import { PropertyCard, PropertyService, canEditProperty } from '../property.service';
+import { propertyTypeKey } from '../../../core/config/constants';
 import { buildAddress, formatCAD } from '../../../core/util/format';
 
 @Component({
   selector: 'app-property-card',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslocoDirective],
   template: `
-    <article class="card" [class.card--sel]="selected()">
+    <article class="card" [class.card--sel]="selected()" *transloco="let t">
       <div class="thumb">
         @if (photo()) {
           <img [src]="photo()" alt="" loading="lazy" />
@@ -20,24 +22,36 @@ import { buildAddress, formatCAD } from '../../../core/util/format';
             <line x1="66" y1="48" x2="108" y2="48" stroke="#B4B7B1" stroke-width="1.5"/>
           </svg>
         }
-        <span class="price">{{ price() }}<span>/mois</span></span>
+        <span class="price">{{ price() }}<span>{{ t('property.perMonth') }}</span></span>
       </div>
       <div class="body">
         <div class="row1">
-          <span class="type">{{ typeLabel() }}</span>
+          <span class="type">{{ t(typeKey()) }}</span>
           @if (property().area != null) {
             <span class="area">{{ property().area }} {{ property().area_unit }}</span>
           }
         </div>
         <p class="addr">{{ address() }}</p>
         <div class="meta">
-          @if (property().bedrooms != null) { <span>{{ property().bedrooms }} ch.</span> }
-          @if (property().bathrooms != null) { <span>{{ property().bathrooms }} sdb.</span> }
+          @if (property().bedrooms != null) {
+            <span>{{ property().bedrooms }} {{ t('property.card.bedroomsShort') }}</span>
+          }
+          @if (property().bathrooms != null) {
+            <span>{{ property().bathrooms }} {{ t('property.card.bathroomsShort') }}</span>
+          }
           @if (property().neighbourhood) { <span>{{ property().neighbourhood }}</span> }
         </div>
-        <a class="see" [routerLink]="['/propiedad', property().id]" (click)="$event.stopPropagation()">
-          Ver ficha →
-        </a>
+        <div class="links">
+          <a class="see" [routerLink]="['/propiedad', property().id]" (click)="$event.stopPropagation()">
+            {{ t('property.card.see') }}
+          </a>
+          @if (canEdit()) {
+            <a class="see see--edit" [routerLink]="['/propiedad', property().id, 'editar']"
+              (click)="$event.stopPropagation()">
+              {{ t('property.card.edit') }}
+            </a>
+          }
+        </div>
       </div>
     </article>
   `,
@@ -83,14 +97,23 @@ import { buildAddress, formatCAD } from '../../../core/util/format';
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .meta { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12.5px; color: var(--ink-3); }
+    .links { display: flex; gap: 14px; }
     .see { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 500; color: var(--accent); }
+    .see--edit { color: var(--ink-2); }
+    .see--edit:hover { color: var(--ink); }
   `],
 })
 export class PropertyCardComponent {
   private readonly svc = inject(PropertyService);
+  private readonly auth = inject(AuthService);
 
   readonly property = input.required<PropertyCard>();
   readonly selected = input<boolean>(false);
+
+  /** Espejo de la política RLS: solo decide si se ve el enlace de editar. */
+  readonly canEdit = computed(() =>
+    canEditProperty(this.property(), this.auth.session()?.user?.id ?? null, this.auth.role()),
+  );
 
   readonly photo = computed(() => {
     const media = (this.property().property_media ?? [])
@@ -101,7 +124,6 @@ export class PropertyCardComponent {
 
   readonly price = computed(() => formatCAD(this.property().price));
   readonly address = computed(() => buildAddress(this.property()));
-  readonly typeLabel = computed(
-    () => PROPERTY_TYPES.find((t) => t.value === this.property().property_type)?.label ?? '',
-  );
+  /** Clave, no texto: traducirlo aquí lo congelaría en el idioma actual. */
+  readonly typeKey = computed(() => propertyTypeKey(this.property().property_type));
 }

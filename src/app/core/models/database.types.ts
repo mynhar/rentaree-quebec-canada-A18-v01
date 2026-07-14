@@ -2,6 +2,9 @@
 
 export type UserRole = 'cliente' | 'escaner' | 'administrador';
 
+/** Idiomas de la interfaz. Francés es el predeterminado (Quebec). */
+export type AppLanguage = 'fr' | 'en' | 'es';
+
 export type PropertyType =
   | 'cuarto'
   | 'casa'
@@ -28,6 +31,8 @@ export interface Profile {
   email: string;
   phone: string;
   role: UserRole;
+  /** Idioma preferido. Null mientras el usuario no elija uno. */
+  language: AppLanguage | null;
   created_at: string;
 }
 

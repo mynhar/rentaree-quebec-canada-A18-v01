@@ -8,6 +8,7 @@ import {
   PropertyMedia,
   PropertyStatus,
   PropertyType,
+  UserRole,
 } from '../../core/models/database.types';
 import { PropertyFilters } from './property-filters';
 
@@ -25,6 +26,20 @@ export interface PropertyCard extends Property {
 export interface PropertyDetail extends Property {
   property_media: PropertyMedia[];
   property_dimensions: PropertyDimension[];
+}
+
+/**
+ * ¿Puede este usuario editar esta propiedad? Es el espejo en el cliente de la
+ * política RLS `properties_update` (owner_id = auth.uid() OR is_admin()): solo
+ * sirve para mostrar u ocultar el botón. Quien autoriza de verdad es la base.
+ */
+export function canEditProperty(
+  property: Pick<Property, 'owner_id'> | null,
+  userId: string | null,
+  role: UserRole | null,
+): boolean {
+  if (!property || !userId) return false;
+  return property.owner_id === userId || role === 'administrador';
 }
 
 /** Datos para crear una propiedad (sin expediente: lo pone el trigger). */
@@ -188,6 +203,21 @@ export class PropertyService {
     if (media.storage_path) {
       await this.sb.storage.from('property-photos').remove([media.storage_path]);
     }
+  }
+
+  /**
+   * Actualiza una propiedad. El expediente y el owner_id no se tocan: el primero
+   * lo genera la base, el segundo definiría de quién es. RLS decide si se puede.
+   */
+  async update(id: string, input: NewPropertyInput): Promise<Property> {
+    const { data, error } = await this.sb
+      .from('properties')
+      .update(input)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as Property;
   }
 
   /** Solicita la visita de escaneo 3D para una propiedad. */

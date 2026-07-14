@@ -7,6 +7,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PropertyService } from '../property.service';
 import { PropertyMedia } from '../../../core/models/database.types';
 import {
@@ -23,6 +24,12 @@ interface StagedPhoto {
   url: string; // object URL para la miniatura
 }
 
+/** Archivo rechazado: clave + parámetros, para poder re-traducir el motivo. */
+interface RejectedFile {
+  key: string;
+  params: { name: string; mb?: number; max?: number };
+}
+
 /**
  * Selector de fotos: arrastrar y soltar, miniaturas, reordenar y eliminar.
  * No sube nada por su cuenta — expone las fotos elegidas con `staged()` y el
@@ -35,7 +42,9 @@ interface StagedPhoto {
 @Component({
   selector: 'app-photo-picker',
   standalone: true,
+  imports: [TranslocoDirective],
   template: `
+    <ng-container *transloco="let t">
     <div
       class="drop"
       [class.drop--over]="dragOver()"
@@ -53,9 +62,9 @@ interface StagedPhoto {
         (change)="onInput($event)"
         hidden
       />
-      <p class="drop__title">Arrastra las fotos aquí</p>
+      <p class="drop__title">{{ t('property.photos.dropTitle') }}</p>
       <p class="drop__note">
-        JPG, PNG o WebP · máx. {{ maxMb }} MB por foto · hasta {{ maxCount }} fotos
+        {{ t('property.photos.dropNote', { mb: maxMb, max: maxCount }) }}
       </p>
       <button
         type="button"
@@ -63,15 +72,16 @@ interface StagedPhoto {
         [disabled]="full() || disabled()"
         (click)="input.click()"
       >
-        Elegir archivos
+        {{ t('property.photos.choose') }}
       </button>
       @if (full()) {
-        <p class="drop__note">Has alcanzado el máximo de {{ maxCount }} fotos.</p>
+        <p class="drop__note">{{ t('property.photos.full', { max: maxCount }) }}</p>
       }
     </div>
 
-    @for (r of rejected(); track r) {
-      <p class="msg msg--error">{{ r }}</p>
+    <!-- Los rechazos guardan clave + parámetros: se re-traducen al cambiar de idioma. -->
+    @for (r of rejected(); track r.key + r.params.name) {
+      <p class="msg msg--error">{{ t(r.key, r.params) }}</p>
     }
 
     @if (count() > 0) {
@@ -79,11 +89,12 @@ interface StagedPhoto {
         @for (m of existing(); track m.id; let i = $index) {
           <li class="thumb">
             <img [src]="photoUrl(m)" alt="" />
-            @if (i === 0) { <span class="cover">Portada</span> }
-            <span class="saved">Guardada</span>
+            @if (i === 0) { <span class="cover">{{ t('property.photos.cover') }}</span> }
+            <span class="saved">{{ t('property.photos.saved') }}</span>
             <div class="thumb__bar">
               <button type="button" class="icon icon--del" [disabled]="disabled()"
-                (click)="existingRemove.emit(m)" aria-label="Eliminar foto guardada">×</button>
+                (click)="existingRemove.emit(m)"
+                [attr.aria-label]="t('property.photos.removeSaved')">×</button>
             </div>
           </li>
         }
@@ -91,22 +102,23 @@ interface StagedPhoto {
         @for (p of staged(); track p.id; let i = $index; let last = $last) {
           <li class="thumb">
             <img [src]="p.url" [alt]="p.file.name" />
-            @if (existing().length === 0 && i === 0) { <span class="cover">Portada</span> }
+            @if (existing().length === 0 && i === 0) {
+              <span class="cover">{{ t('property.photos.cover') }}</span>
+            }
             <div class="thumb__bar">
               <button type="button" class="icon" [disabled]="i === 0 || disabled()"
-                (click)="move(i, -1)" aria-label="Mover antes">‹</button>
+                (click)="move(i, -1)" [attr.aria-label]="t('property.photos.movePrev')">‹</button>
               <button type="button" class="icon" [disabled]="last || disabled()"
-                (click)="move(i, 1)" aria-label="Mover después">›</button>
+                (click)="move(i, 1)" [attr.aria-label]="t('property.photos.moveNext')">›</button>
               <button type="button" class="icon icon--del" [disabled]="disabled()"
-                (click)="remove(i)" aria-label="Quitar foto">×</button>
+                (click)="remove(i)" [attr.aria-label]="t('property.photos.remove')">×</button>
             </div>
           </li>
         }
       </ul>
-      <p class="note">
-        {{ count() }} de {{ maxCount }} · la primera foto es la portada de la tarjeta.
-      </p>
+      <p class="note">{{ t('property.photos.count', { count: count(), max: maxCount }) }}</p>
     }
+    </ng-container>
   `,
   styles: [`
     :host { display: block; }
@@ -175,7 +187,7 @@ export class PhotoPickerComponent implements OnDestroy {
   readonly existingRemove = output<PropertyMedia>();
 
   readonly staged = signal<StagedPhoto[]>([]);
-  readonly rejected = signal<string[]>([]);
+  readonly rejected = signal<RejectedFile[]>([]);
   readonly dragOver = signal(false);
 
   readonly accept = PHOTO_ACCEPT;
@@ -241,17 +253,23 @@ export class PhotoPickerComponent implements OnDestroy {
 
   /** Valida tipo, tamaño y cupo; lo que no pasa se explica al usuario. */
   private add(files: File[]): void {
-    const errors: string[] = [];
+    const errors: RejectedFile[] = [];
     const ok: StagedPhoto[] = [];
     let room = PHOTO_MAX_COUNT - this.count();
 
     for (const file of files) {
       if (!PHOTO_MIME_TYPES.includes(file.type)) {
-        errors.push(`«${file.name}»: formato no admitido (usa JPG, PNG o WebP).`);
+        errors.push({ key: 'property.photos.rejected.type', params: { name: file.name } });
       } else if (file.size > PHOTO_MAX_BYTES) {
-        errors.push(`«${file.name}»: pesa más de ${this.maxMb} MB.`);
+        errors.push({
+          key: 'property.photos.rejected.size',
+          params: { name: file.name, mb: this.maxMb },
+        });
       } else if (room <= 0) {
-        errors.push(`«${file.name}»: superarías el máximo de ${PHOTO_MAX_COUNT} fotos.`);
+        errors.push({
+          key: 'property.photos.rejected.max',
+          params: { name: file.name, max: PHOTO_MAX_COUNT },
+        });
       } else {
         room--;
         ok.push({ id: crypto.randomUUID(), file, url: URL.createObjectURL(file) });

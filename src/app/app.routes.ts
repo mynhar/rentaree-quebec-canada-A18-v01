@@ -46,6 +46,15 @@ export const routes: Routes = [
         (m) => m.PropertyDetailComponent,
       ),
   },
+  {
+    // Mismo formulario que el alta, en modo edición (precarga + update).
+    path: 'propiedad/:id/editar',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/properties/property-form/property-form.component').then(
+        (m) => m.PropertyFormComponent,
+      ),
+  },
 
   {
     path: 'escaner',
