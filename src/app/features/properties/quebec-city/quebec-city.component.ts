@@ -24,6 +24,12 @@ type ViewMode = 'list' | 'map' | 'split';
       </div>
 
       <div class="bar__right">
+        @if (auth.role() === 'escaner' || auth.role() === 'administrador') {
+          <a routerLink="/escaner" class="role-link">Escaneos</a>
+        }
+        @if (auth.role() === 'administrador') {
+          <a routerLink="/admin" class="role-link">Admin</a>
+        }
         <a routerLink="/quebec-city/nueva" class="btn btn--primary">Nueva propiedad</a>
         <span class="user">{{ auth.profile()?.first_name }} {{ auth.profile()?.last_name }}</span>
         <button class="btn btn--ghost" (click)="salir()">Salir</button>
@@ -109,6 +115,8 @@ type ViewMode = 'list' | 'map' | 'split';
     .search { flex: 1; max-width: 420px; }
     .bar__right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
     .user { font-size: 14px; color: var(--ink-2); }
+    .role-link { font-size: 13.5px; font-weight: 500; color: var(--ink-2); }
+    .role-link:hover { color: var(--accent); }
 
     .notice { background: #FAEEDA; color: #8A5B00; padding: 10px 20px; font-size: 13.5px; }
     .notice a { color: #8A5B00; text-decoration: underline; margin-left: 4px; }

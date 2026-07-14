@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
-// import { roleGuard } from './core/guards/role.guard'; // se usa en fases futuras
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -47,19 +47,20 @@ export const routes: Routes = [
       ),
   },
 
-  // --- Rutas de la Fase 8 ---
-  // {
-  //   path: 'escaner',
-  //   canActivate: [roleGuard(['escaner', 'administrador'])],
-  //   loadComponent: () => import('./features/scanning/scanner-dashboard.component')
-  //     .then((m) => m.ScannerDashboardComponent),
-  // },
-  // {
-  //   path: 'admin',
-  //   canActivate: [roleGuard(['administrador'])],
-  //   loadComponent: () => import('./features/admin/admin.component')
-  //     .then((m) => m.AdminComponent),
-  // },
+  {
+    path: 'escaner',
+    canActivate: [roleGuard(['escaner', 'administrador'])],
+    loadComponent: () =>
+      import('./features/scanning/scanner-dashboard.component').then(
+        (m) => m.ScannerDashboardComponent,
+      ),
+  },
+  {
+    path: 'admin',
+    canActivate: [roleGuard(['administrador'])],
+    loadComponent: () =>
+      import('./features/admin/admin.component').then((m) => m.AdminComponent),
+  },
 
   { path: '**', redirectTo: '' },
 ];
