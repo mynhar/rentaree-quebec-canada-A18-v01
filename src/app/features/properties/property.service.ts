@@ -123,6 +123,73 @@ export class PropertyService {
     return data as Property;
   }
 
+  // --- Fotos (bucket property-photos + filas en property_media) ---
+
+  /** Fotos ya guardadas de una propiedad, en orden de portada. */
+  async listPhotos(propertyId: string): Promise<PropertyMedia[]> {
+    const { data, error } = await this.sb
+      .from('property_media')
+      .select('*')
+      .eq('property_id', propertyId)
+      .eq('media_type', 'photo')
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as PropertyMedia[];
+  }
+
+  /**
+   * Sube las fotos al bucket y crea sus filas en property_media.
+   * El orden del array es el orden de la galería: la primera es la portada.
+   * `startOrder` permite añadir fotos detrás de las que ya existen.
+   * Si una subida falla, se borran los archivos ya subidos para no dejar huérfanos.
+   */
+  async uploadPhotos(
+    propertyId: string,
+    files: File[],
+    opts: { startOrder?: number; onProgress?: (done: number, total: number) => void } = {},
+  ): Promise<void> {
+    if (!files.length) return;
+    const { startOrder = 0, onProgress } = opts;
+    const bucket = this.sb.storage.from('property-photos');
+    const paths: string[] = [];
+
+    try {
+      for (const [i, file] of files.entries()) {
+        const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const path = `${propertyId}/${crypto.randomUUID()}.${ext}`;
+        const { error } = await bucket.upload(path, file, {
+          contentType: file.type,
+          upsert: false,
+        });
+        if (error) throw error;
+        paths.push(path);
+        onProgress?.(i + 1, files.length);
+      }
+
+      const { error } = await this.sb.from('property_media').insert(
+        paths.map((storage_path, i) => ({
+          property_id: propertyId,
+          media_type: 'photo' as MediaType,
+          storage_path,
+          sort_order: startOrder + i,
+        })),
+      );
+      if (error) throw error;
+    } catch (e) {
+      if (paths.length) await bucket.remove(paths);
+      throw e;
+    }
+  }
+
+  /** Borra una foto: primero la fila, luego el archivo del bucket. */
+  async deletePhoto(media: PropertyMedia): Promise<void> {
+    const { error } = await this.sb.from('property_media').delete().eq('id', media.id);
+    if (error) throw error;
+    if (media.storage_path) {
+      await this.sb.storage.from('property-photos').remove([media.storage_path]);
+    }
+  }
+
   /** Solicita la visita de escaneo 3D para una propiedad. */
   async requestScan(propertyId: string, requestedBy: string, notes?: string | null): Promise<void> {
     const { error } = await this.sb.from('scan_requests').insert({

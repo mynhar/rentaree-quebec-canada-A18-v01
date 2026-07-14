@@ -30,3 +30,9 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
 
 // Coordenadas de respaldo para centrar el mapa si no hay geolocalización.
 export const DEFAULT_MAP_CENTER = { lat: 45.5019, lng: -73.5674 }; // Montréal
+
+// Fotos de propiedades (bucket property-photos).
+export const PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+export const PHOTO_ACCEPT = '.jpg,.jpeg,.png,.webp';
+export const PHOTO_MAX_BYTES = 8 * 1024 * 1024; // 8 MB por foto
+export const PHOTO_MAX_COUNT = 15;              // por propiedad

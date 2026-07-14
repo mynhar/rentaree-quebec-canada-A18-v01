@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
   FormBuilder,
@@ -11,11 +11,13 @@ import { PropertyService, NewPropertyInput } from '../property.service';
 import { GeocodingService } from '../../../core/util/geocoding.service';
 import { CA_PROVINCES, PROPERTY_TYPES } from '../../../core/config/constants';
 import { CaProvince, PropertyType } from '../../../core/models/database.types';
+import { errorMessage } from '../../../core/util/errors';
+import { PhotoPickerComponent } from '../shared/photo-picker.component';
 
 @Component({
   selector: 'app-property-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, PhotoPickerComponent],
   template: `
     <header class="bar">
       <a routerLink="/quebec-city" class="back">← Volver</a>
@@ -35,6 +37,9 @@ import { CaProvince, PropertyType } from '../../../core/models/database.types';
               Te contactaremos para agendar la visita de escaneo 3D.
             }
           </p>
+          @if (photoError(); as pe) {
+            <p class="msg msg--error">{{ pe }}</p>
+          }
           <div class="row">
             <a routerLink="/quebec-city" class="btn btn--primary">Ver mis propiedades</a>
             <button class="btn btn--ghost" (click)="reset()">Registrar otra</button>
@@ -188,6 +193,15 @@ import { CaProvince, PropertyType } from '../../../core/models/database.types';
             @if (geoMsg()) { <p class="note note--geo">{{ geoMsg() }}</p> }
           </section>
 
+          <!-- Fotos -->
+          <section class="block">
+            <div class="block__head">
+              <h2>Fotos</h2>
+              <p>Opcionales. Se suben al registrar la propiedad; la primera es la portada.</p>
+            </div>
+            <app-photo-picker [disabled]="busy()" />
+          </section>
+
           <!-- Escaneo 3D -->
           <section class="block">
             <label class="scan">
@@ -203,7 +217,7 @@ import { CaProvince, PropertyType } from '../../../core/models/database.types';
 
           <div class="actions">
             <button class="btn btn--primary" type="submit" [disabled]="busy()">
-              {{ busy() ? 'Registrando…' : 'Registrar propiedad' }}
+              {{ busy() ? uploadLabel() : 'Registrar propiedad' }}
             </button>
             <a routerLink="/quebec-city" class="btn btn--ghost">Cancelar</a>
           </div>
@@ -280,12 +294,22 @@ export class PropertyFormComponent implements OnInit {
   readonly types = PROPERTY_TYPES;
   readonly provinces = CA_PROVINCES;
 
+  private readonly picker = viewChild(PhotoPickerComponent);
+
   readonly busy = signal(false);
   readonly geocoding = signal(false);
   readonly error = signal<string | null>(null);
   readonly geoMsg = signal<string | null>(null);
   readonly created = signal<string | null>(null);   // número de expediente
   readonly scanRequested = signal(false);
+  readonly uploaded = signal<{ done: number; total: number } | null>(null);
+  readonly photoError = signal<string | null>(null);
+
+  /** Texto del botón: mientras suben fotos, dice por cuál va. */
+  uploadLabel(): string {
+    const u = this.uploaded();
+    return u ? `Subiendo fotos ${u.done}/${u.total}…` : 'Registrando…';
+  }
 
   readonly form: FormGroup = this.fb.group({
     // Contacto
@@ -402,6 +426,26 @@ export class PropertyFormComponent implements OnInit {
 
       const property = await this.svc.create(input, userId);
 
+      // Las fotos solo se pueden subir ahora: su ruta lleva el id de la propiedad.
+      // Si fallan, la propiedad ya está creada — se avisa, no se pierde el expediente.
+      const photos = this.picker()?.files() ?? [];
+      if (photos.length) {
+        try {
+          this.uploaded.set({ done: 0, total: photos.length });
+          await this.svc.uploadPhotos(property.id, photos, {
+            onProgress: (done, total) => this.uploaded.set({ done, total }),
+          });
+          this.picker()?.clear();
+        } catch {
+          this.photoError.set(
+            'La propiedad se registró, pero no se pudieron subir las fotos. ' +
+              'Añádelas más tarde desde la ficha.',
+          );
+        } finally {
+          this.uploaded.set(null);
+        }
+      }
+
       if (v.request_scan) {
         await this.svc.requestScan(property.id, userId);
         this.scanRequested.set(true);
@@ -409,9 +453,7 @@ export class PropertyFormComponent implements OnInit {
 
       this.created.set(property.expediente);
     } catch (e) {
-      this.error.set(
-        e instanceof Error ? e.message : 'No se pudo registrar la propiedad. Inténtalo de nuevo.',
-      );
+      this.error.set(errorMessage(e, 'No se pudo registrar la propiedad. Inténtalo de nuevo.'));
     } finally {
       this.busy.set(false);
     }
@@ -421,6 +463,8 @@ export class PropertyFormComponent implements OnInit {
     this.created.set(null);
     this.scanRequested.set(false);
     this.geoMsg.set(null);
+    this.photoError.set(null);
+    this.uploaded.set(null);
     this.form.reset({
       property_type: 'apartamento',
       city: 'Montréal',

@@ -1,10 +1,13 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { ScanService, ScanRequestFull, DimensionInput } from './scan.service';
-import { ScanStatus } from '../../core/models/database.types';
+import { PropertyService } from '../properties/property.service';
+import { PhotoPickerComponent } from '../properties/shared/photo-picker.component';
+import { PropertyMedia, ScanStatus } from '../../core/models/database.types';
 import { buildAddress } from '../../core/util/format';
+import { errorMessage } from '../../core/util/errors';
 
 const STATUS_LABEL: Record<ScanStatus, string> = {
   solicitado: 'Solicitado',
@@ -16,7 +19,7 @@ const STATUS_LABEL: Record<ScanStatus, string> = {
 @Component({
   selector: 'app-scanner-dashboard',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, PhotoPickerComponent],
   template: `
     <header class="bar">
       <a routerLink="/quebec-city" class="back">← Propiedades</a>
@@ -58,6 +61,16 @@ const STATUS_LABEL: Record<ScanStatus, string> = {
                     <small class="note">En Matterport: Share → Embed. Pega aquí la URL del modelo.</small>
                   </div>
 
+                  <!-- Fotos -->
+                  <div class="field">
+                    <label>Fotos de la propiedad</label>
+                    <app-photo-picker
+                      [existing]="photos()"
+                      [disabled]="busy()"
+                      (existingRemove)="deletePhoto($event)"
+                    />
+                  </div>
+
                   <!-- Dimensiones -->
                   <div class="dims">
                     <div class="dims__head">
@@ -87,7 +100,7 @@ const STATUS_LABEL: Record<ScanStatus, string> = {
 
                   <div class="actions">
                     <button class="btn btn--primary" (click)="save(r)" [disabled]="busy()">
-                      {{ busy() ? 'Guardando…' : 'Guardar y completar' }}
+                      {{ busy() ? saveLabel() : 'Guardar y completar' }}
                     </button>
                     <a class="btn btn--ghost" [routerLink]="['/propiedad', r.property_id]">Ver ficha</a>
                   </div>
@@ -153,17 +166,27 @@ const STATUS_LABEL: Record<ScanStatus, string> = {
 })
 export class ScannerDashboardComponent implements OnInit {
   private readonly svc = inject(ScanService);
+  private readonly props = inject(PropertyService);
   readonly auth = inject(AuthService);
+
+  private readonly picker = viewChild(PhotoPickerComponent);
 
   readonly requests = signal<ScanRequestFull[]>([]);
   readonly loading = signal(true);
   readonly openId = signal<string | null>(null);
   readonly dims = signal<DimensionInput[]>([]);
+  readonly photos = signal<PropertyMedia[]>([]);
+  readonly uploaded = signal<{ done: number; total: number } | null>(null);
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
   readonly saved = signal(false);
 
   tourUrl = '';
+
+  saveLabel(): string {
+    const u = this.uploaded();
+    return u ? `Subiendo fotos ${u.done}/${u.total}…` : 'Guardando…';
+  }
 
   async ngOnInit(): Promise<void> {
     await this.load();
@@ -193,6 +216,9 @@ export class ScannerDashboardComponent implements OnInit {
     }
     this.openId.set(r.id);
     this.tourUrl = '';
+    this.photos.set([]);
+
+    this.photos.set(await this.props.listPhotos(r.property_id));
 
     const existing = await this.svc.listDimensions(r.property_id);
     this.dims.set(
@@ -223,6 +249,17 @@ export class ScannerDashboardComponent implements OnInit {
     if (w > 0 && l > 0) d.area = Number((w * l).toFixed(2));
   }
 
+  /** Borra una foto ya guardada (fila + archivo del bucket). */
+  async deletePhoto(m: PropertyMedia): Promise<void> {
+    this.error.set(null);
+    try {
+      await this.props.deletePhoto(m);
+      this.photos.update((rows) => rows.filter((p) => p.id !== m.id));
+    } catch {
+      this.error.set('No se pudo eliminar la foto. Inténtalo de nuevo.');
+    }
+  }
+
   async save(r: ScanRequestFull): Promise<void> {
     this.busy.set(true);
     this.error.set(null);
@@ -237,14 +274,28 @@ export class ScannerDashboardComponent implements OnInit {
         await this.svc.saveTour(r.property_id, url);
       }
 
+      // Las nuevas fotos van detrás de las que ya estaban.
+      const files = this.picker()?.files() ?? [];
+      if (files.length) {
+        const startOrder = this.photos().reduce((max, p) => Math.max(max, p.sort_order + 1), 0);
+        this.uploaded.set({ done: 0, total: files.length });
+        await this.props.uploadPhotos(r.property_id, files, {
+          startOrder,
+          onProgress: (done, total) => this.uploaded.set({ done, total }),
+        });
+        this.picker()?.clear();
+        this.photos.set(await this.props.listPhotos(r.property_id));
+      }
+
       await this.svc.saveDimensions(r.property_id, this.dims());
       await this.svc.updateStatus(r.id, 'completado');
 
       this.saved.set(true);
       await this.load();
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo guardar. Inténtalo de nuevo.');
+      this.error.set(errorMessage(e, 'No se pudo guardar. Inténtalo de nuevo.'));
     } finally {
+      this.uploaded.set(null);
       this.busy.set(false);
     }
   }

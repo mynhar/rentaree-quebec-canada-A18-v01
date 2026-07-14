@@ -16,7 +16,9 @@ extracted from the scan itself. A 3D scanning service is also offered to propert
 - `npm test` / `ng test` — unit tests via Karma + Jasmine in Chrome. Run a single spec with a fdescribe/fit focus or `ng test --include='**/name.spec.ts'`. Note: no `.spec.ts` files exist yet.
 - Scaffolding: `ng generate component features/<area>/<name>` (project prefix is `app`).
 
-**After any change, run `ng build` and fix the errors before considering the task done.**
+**After any change, run `ng build` and fix the errors before considering the task done.** There is no linter
+configured, so the compiler is the only automated check; the production build also fails on bundle budgets
+(initial > 1 MB, component styles > 10 kB — worth knowing before adding a heavy dependency).
 
 ## Architecture
 
@@ -35,6 +37,11 @@ Angular 18 standalone SPA (no NgModules) backed by Supabase for auth and data. T
 
 **Features:** `landing/`, `auth/`, `properties/` (`quebec-city` list+map+split, `property-form`, `property-detail`), `scanning/` (scanner panel), `admin/` (roles + scanner assignment).
 
+**Map and geocoding are deliberately key-free**, and each choice carries a constraint:
+- [property-map.component.ts](src/app/features/properties/quebec-city/property-map.component.ts) uses **maplibre-gl** with the free OpenFreeMap `positron` style. It is the one imperative corner of the app: markers are held in a `Map` and re-rendered by `effect()`s watching the `properties`/`selectedId` inputs, so it must tear itself down in `ngOnDestroy`. It sets `ViewEncapsulation.None` in order to style MapLibre's own DOM, and `maplibre-gl.css` is loaded globally from `angular.json` (build target only, not test).
+- [geocoding.service.ts](src/app/core/util/geocoding.service.ts) uses **Nominatim**, which permits at most 1 request/second. That is why the property form only geocodes on an explicit "buscar coordenadas" button press, never on keystroke. Preserve that, or swap the provider.
+- Properties with null `latitude`/`longitude` simply have no pin; `DEFAULT_MAP_CENTER` (Montréal) is the fallback center.
+
 **Auth flow specifics:** email/password sign-up passes `first_name`/`last_name`/`phone` as user metadata; Google OAuth users have no phone, so `needsProfileCompletion` gates them into [complete-profile.component.ts](src/app/features/auth/complete-profile.component.ts) before they can publish. A `profiles` table row is expected to exist per auth user (created by a DB trigger, loaded by `loadProfile`).
 
 ## Business rules (do not break)
@@ -48,7 +55,17 @@ Angular 18 standalone SPA (no NgModules) backed by Supabase for auth and data. T
   `[src]` by design — do not blanket-bypass it.
 - Roles: **Cliente** (default on sign-up) → **Escáner** → **Administrador**.
 - Room dimensions come from the 3D scan and are entered by the Escáner; the total area is written back
-  to `properties.area`.
+  to `properties.area`. It is **derived, never typed in** — `ScanService.saveDimensions()` recomputes it
+  as the sum of the rooms (in `m2`).
+- `saveDimensions()` and `saveTour()` are **delete-then-insert**: the incoming set replaces the stored one
+  rather than merging into it. Callers must always submit the complete set.
+- Assigning a scanner writes `properties.scanned_by` as well as `scan_requests.scanner_id` — that column
+  is what grants the scanner edit rights through RLS, so the two must move together
+  (`ScanService.assignScanner()`).
+- Because RLS is the authorization layer, the services intentionally issue **unscoped** queries
+  (`listRequests()` selects all of `scan_requests`, `search()` all of `properties`) and let the database
+  narrow the rows. Don't "fix" that by adding client-side owner filtering; it would be redundant and would
+  mask a missing policy.
 
 ## Visual system
 
@@ -84,6 +101,10 @@ Tables: `profiles`, `properties`, `property_media`, `property_dimensions`, `scan
 Storage buckets: `property-photos`, `property-videos`, `floor-plans`.
 
 ## Roadmap
+
+Each of these is already specced in [prompts-claude-code.md](prompts-claude-code.md); read the relevant
+section there before starting one. They are ordered on purpose — the i18n pass touches every template, so
+it wants the rest to be stable first.
 
 1. **Photo upload** to Supabase Storage (`property-photos`), recorded in `property_media` with
    `media_type='photo'` and `sort_order`. Until this exists, cards fall back to a line-drawing placeholder.
