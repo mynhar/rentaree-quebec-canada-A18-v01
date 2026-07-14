@@ -38,19 +38,16 @@ export const routes: Routes = [
       ),
   },
 
-  // --- Rutas de fases futuras ---
-  // {
-  //   path: 'quebec-city/nueva',
-  //   canActivate: [authGuard],
-  //   loadComponent: () => import('./features/properties/property-form/property-form.component')
-  //     .then((m) => m.PropertyFormComponent),
-  // },
-  // {
-  //   path: 'propiedad/:id',
-  //   canActivate: [authGuard],
-  //   loadComponent: () => import('./features/properties/property-detail/property-detail.component')
-  //     .then((m) => m.PropertyDetailComponent),
-  // },
+  {
+    path: 'propiedad/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/properties/property-detail/property-detail.component').then(
+        (m) => m.PropertyDetailComponent,
+      ),
+  },
+
+  // --- Rutas de la Fase 8 ---
   // {
   //   path: 'escaner',
   //   canActivate: [roleGuard(['escaner', 'administrador'])],

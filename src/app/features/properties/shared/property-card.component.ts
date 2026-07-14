@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { PropertyCard, PropertyService } from '../property.service';
 import { PROPERTY_TYPES } from '../../../core/config/constants';
 import { buildAddress, formatCAD } from '../../../core/util/format';
@@ -6,6 +7,7 @@ import { buildAddress, formatCAD } from '../../../core/util/format';
 @Component({
   selector: 'app-property-card',
   standalone: true,
+  imports: [RouterLink],
   template: `
     <article class="card" [class.card--sel]="selected()">
       <div class="thumb">
@@ -33,6 +35,9 @@ import { buildAddress, formatCAD } from '../../../core/util/format';
           @if (property().bathrooms != null) { <span>{{ property().bathrooms }} sdb.</span> }
           @if (property().neighbourhood) { <span>{{ property().neighbourhood }}</span> }
         </div>
+        <a class="see" [routerLink]="['/propiedad', property().id]" (click)="$event.stopPropagation()">
+          Ver ficha →
+        </a>
       </div>
     </article>
   `,
@@ -78,6 +83,7 @@ import { buildAddress, formatCAD } from '../../../core/util/format';
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .meta { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12.5px; color: var(--ink-3); }
+    .see { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 500; color: var(--accent); }
   `],
 })
 export class PropertyCardComponent {

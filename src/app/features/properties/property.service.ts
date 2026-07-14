@@ -4,6 +4,8 @@ import {
   CaProvince,
   MediaType,
   Property,
+  PropertyDimension,
+  PropertyMedia,
   PropertyStatus,
   PropertyType,
 } from '../../core/models/database.types';
@@ -17,6 +19,12 @@ export interface PropertyCardMedia {
 
 export interface PropertyCard extends Property {
   property_media?: PropertyCardMedia[];
+}
+
+/** Propiedad completa para la ficha: con medios y dimensiones. */
+export interface PropertyDetail extends Property {
+  property_media: PropertyMedia[];
+  property_dimensions: PropertyDimension[];
 }
 
 /** Datos para crear una propiedad (sin expediente: lo pone el trigger). */
@@ -81,6 +89,24 @@ export class PropertyService {
     if (!path) return null;
     const { data } = this.sb.storage.from('property-photos').getPublicUrl(path);
     return data.publicUrl;
+  }
+
+  /** URL pública de un video en el bucket property-videos. */
+  videoUrl(path: string | null | undefined): string | null {
+    if (!path) return null;
+    const { data } = this.sb.storage.from('property-videos').getPublicUrl(path);
+    return data.publicUrl;
+  }
+
+  /** Trae una propiedad con sus medios y dimensiones (para la ficha). */
+  async getById(id: string): Promise<PropertyDetail | null> {
+    const { data, error } = await this.sb
+      .from('properties')
+      .select('*, property_media(*), property_dimensions(*)')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw error;
+    return (data as PropertyDetail | null) ?? null;
   }
 
   /**
