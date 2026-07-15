@@ -102,6 +102,11 @@
       "ctaExplore": "Explorar propiedades",
       "ctaScan": "Escanear mi propiedad"
     },
+    "video": {
+      "eyebrow": "Demostración",
+      "title": "Una propiedad, escaneada en 3D.",
+      "lead": "Un ejemplo de escaneo Matterport: recorre cada ambiente y consulta sus dimensiones reales, antes incluso de visitar."
+    },
     "plan": {
       "salon": "Salón",
       "cuisine": "Cocina",
@@ -209,9 +214,17 @@
     },
     "results": "{{count}} resultados",
     "view": {
+      "cards": "Tarjetas",
       "list": "Lista",
       "map": "Mapa",
       "split": "Dividir"
+    },
+    "sort": {
+      "label": "Ordenar",
+      "relevant": "Más relevantes",
+      "recent": "Más recientes",
+      "priceAsc": "Precio: menor a mayor",
+      "priceDesc": "Precio: mayor a menor"
     },
     "notice": {
       "completePhone": "Completa tu teléfono para poder publicar propiedades.",
@@ -366,6 +379,23 @@
         "email": "Enviar correo",
         "note": "Menciona el expediente {{expediente}} al escribir."
       },
+      "visit": {
+        "title": "Visita de escaneo 3D",
+        "date": "Fecha de la visita",
+        "scanner": "Escáner",
+        "status": "Estado",
+        "pendingDate": "Por agendar",
+        "pendingScanner": "Por asignar"
+      },
+      "location": {
+        "title": "Ubicación",
+        "enlarge": "Ampliar mapa",
+        "reduce": "Reducir mapa"
+      },
+      "nearby": {
+        "title": "Propiedades cercanas",
+        "more": "Mostrar más"
+      },
       "edit": "Editar"
     },
     "status": {
@@ -387,12 +417,20 @@
     "title": "Panel del escáner",
     "heading": "Escaneos asignados",
     "lead": "Registra el recorrido 3D y las dimensiones tras cada visita.",
+    "schedule": "Visita agendada",
+    "notScheduled": "Sin agendar",
+    "client": "Cliente a visitar",
+    "location": "Ubicación de la propiedad",
+    "enlarge": "Ampliar mapa",
+    "reduce": "Reducir mapa",
     "loading": "Cargando solicitudes…",
     "emptyTitle": "Sin escaneos asignados",
     "emptyText": "Cuando un administrador te asigne una visita, aparecerá aquí.",
     "tour": {
       "label": "Recorrido 3D (Matterport)",
-      "note": "En Matterport: Share → Embed. Pega aquí la URL del modelo."
+      "note": "En Matterport: Share → Embed. Pega aquí la URL del modelo. Puedes añadir varios.",
+      "add": "Agregar",
+      "remove": "Quitar recorrido"
     },
     "photos": {
       "label": "Fotos de la propiedad"
@@ -432,6 +470,7 @@
       "property": "Propiedad",
       "status": "Estado",
       "scanner": "Escáner asignado",
+      "schedule": "Fecha de la visita",
       "unassigned": "— Sin asignar —",
       "view": "Ver ficha"
     },
@@ -446,6 +485,7 @@
     "errors": {
       "load": "No se pudieron cargar los datos.",
       "assign": "No se pudo asignar el escáner.",
+      "schedule": "No se pudo agendar la visita.",
       "role": "No se pudo cambiar el rol."
     }
   }

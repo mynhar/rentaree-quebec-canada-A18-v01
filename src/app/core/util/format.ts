@@ -34,6 +34,14 @@ export function formatDate(iso: string | null | undefined): string {
   return new Intl.DateTimeFormat(activeLocale(), { dateStyle: 'long' }).format(d);
 }
 
+/** Fecha ISO -> fecha + hora en el idioma activo (14 juillet 2026, 14:00). */
+export function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return new Intl.DateTimeFormat(activeLocale(), { dateStyle: 'long', timeStyle: 'short' }).format(d);
+}
+
 /** Combina unidad + calle + ciudad: "5-123 Main St, Montréal". */
 export function buildAddress(p: {
   unit_number?: string | null;

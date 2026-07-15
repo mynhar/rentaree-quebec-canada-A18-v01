@@ -22,18 +22,16 @@ import {
 } from '../../../core/models/database.types';
 import { errorMessage } from '../../../core/util/errors';
 import { PhotoPickerComponent } from '../shared/photo-picker.component';
+import { AppHeaderComponent } from '../../../core/layout/app-header.component';
 import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-property-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PhotoPickerComponent, TranslocoDirective],
+  imports: [ReactiveFormsModule, RouterLink, PhotoPickerComponent, AppHeaderComponent, TranslocoDirective],
   template: `
     <ng-container *transloco="let t">
-    <header class="bar">
-      <a routerLink="/quebec-city" class="back">{{ t('common.back') }}</a>
-      <span class="mark">Rentaree<span class="mark__tick" aria-hidden="true"></span></span>
-    </header>
+    <app-header />
 
     <main class="wrap">
       @if (created(); as exp) {
@@ -299,57 +297,53 @@ import { TranslocoDirective } from '@jsverse/transloco';
   `,
   styles: [`
     :host { display: block; min-height: 100dvh; }
-    .bar { display: flex; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
-    .back { font-size: 14px; color: var(--ink-2); }
-    .mark { margin-left: auto; font-family: var(--font-display); font-weight: 600; font-size: 18px; display: inline-flex; align-items: center; gap: 5px; }
-    .mark__tick { width: 15px; height: 8px; border-left: 1px solid var(--ink-3); border-right: 1px solid var(--ink-3); border-bottom: 1px solid var(--ink-3); }
+    .wrap { max-width: 720px; margin: 0 auto; padding: var(--space-2xl) var(--space-lg) var(--space-4xl); }
+    h1 { font-size: var(--text-3xl); margin-bottom: 6px; }
+    .lead { color: var(--ink-2); font-size: var(--text-base); margin: 0 0 var(--space-sm); }
 
-    .wrap { max-width: 720px; margin: 0 auto; padding: 40px 24px 80px; }
-    h1 { font-size: 30px; margin-bottom: 6px; }
-    .lead { color: var(--ink-2); font-size: 15px; margin: 0 0 8px; }
+    .block { border-top: 1px solid var(--line); padding-top: var(--space-lg); margin-top: var(--space-xl); }
+    .block__head { margin-bottom: var(--space-md); }
+    .block__head h2 { font-size: var(--text-xl); }
+    .block__head p { margin: 4px 0 0; font-size: var(--text-sm); color: var(--ink-3); }
 
-    .block { border-top: 1px solid var(--line); padding-top: 22px; margin-top: 28px; }
-    .block__head { margin-bottom: 16px; }
-    .block__head h2 { font-size: 17px; }
-    .block__head p { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-3); }
-
-    .field { margin-bottom: 14px; }
-    .field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; color: var(--ink-2); }
+    .field { margin-bottom: var(--space-md); }
+    .field label { display: block; margin-bottom: 6px; font-size: var(--text-sm); font-weight: 500; color: var(--ink-2); }
     .field label i { color: var(--accent); font-style: normal; }
-    .note { display: block; margin-top: 5px; font-size: 12px; color: var(--ink-3); }
+    .note { display: block; margin-top: 5px; font-size: var(--text-xs); color: var(--ink-3); }
     .note--geo { color: var(--ink-2); }
     .mono { font-family: var(--font-mono); }
     textarea.input { resize: vertical; }
     select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%), linear-gradient(135deg, var(--ink-3) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
     input[readonly] { background: var(--surface-2); color: var(--ink-3); }
 
-    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .grid3 { display: grid; grid-template-columns: 1.2fr 1.4fr 1fr; gap: 12px; }
-    .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .grid-addr { display: grid; grid-template-columns: 140px 1fr; gap: 12px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+    .grid3 { display: grid; grid-template-columns: 1.2fr 1.4fr 1fr; gap: var(--space-md); }
+    .grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-md); }
+    .grid-addr { display: grid; grid-template-columns: 140px 1fr; gap: var(--space-md); }
 
-    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip { font: inherit; font-size: 13.5px; padding: 8px 15px; border: 1px solid var(--line-2); border-radius: 100px; background: var(--surface); color: var(--ink-2); cursor: pointer; }
-    .chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .chips { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+    .chip { font: inherit; font-size: var(--text-sm); padding: 8px 15px; border: 1px solid var(--line-2); border-radius: var(--radius-pill); background: var(--surface); color: var(--ink-2); cursor: pointer; transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+    .chip:hover { border-color: var(--ink-3); }
+    .chip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 
-    .gps { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
+    .gps { display: grid; grid-template-columns: 1fr 1fr auto; gap: var(--space-md); align-items: end; }
     .gps .field { margin-bottom: 0; }
 
-    .scan { display: flex; gap: 12px; align-items: flex-start; padding: 16px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-lg); cursor: pointer; }
-    .scan span { display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; color: var(--ink-2); }
-    .scan strong { font-size: 14.5px; color: var(--ink); font-weight: 500; }
+    .scan { display: flex; gap: var(--space-md); align-items: flex-start; padding: var(--space-md); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-lg); cursor: pointer; }
+    .scan span { display: flex; flex-direction: column; gap: 3px; font-size: var(--text-sm); color: var(--ink-2); }
+    .scan strong { font-size: var(--text-base); color: var(--ink); font-weight: 500; }
 
-    .msg { margin-top: 20px; padding: 10px 12px; border-radius: var(--radius); font-size: 13.5px; }
+    .msg { margin-top: var(--space-lg); padding: 10px 12px; border-radius: var(--radius); font-size: var(--text-sm); }
     .msg--error { background: var(--danger-050); color: var(--danger); }
 
-    .actions { display: flex; gap: 12px; margin-top: 28px; }
+    .actions { display: flex; gap: var(--space-md); margin-top: var(--space-xl); }
 
-    /* Éxito */
-    .done { text-align: center; padding: 56px 0; }
-    .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
-    .exp { font-family: var(--font-mono); font-size: 26px; font-weight: 700; letter-spacing: .02em; margin: 18px 0; padding: 16px; background: var(--surface-2); border: 1px dashed var(--line-2); border-radius: var(--radius-lg); }
-    .done .lead { max-width: 44ch; margin: 0 auto 24px; }
-    .row { display: flex; gap: 12px; justify-content: center; }
+    /* Éxito — el expediente como tarjeta grafito (sello de datos) */
+    .done { text-align: center; padding: var(--space-2xl) 0; }
+    .eyebrow { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 0 0 var(--space-md); }
+    .exp { font-family: var(--font-mono); font-size: var(--text-2xl); font-weight: 700; letter-spacing: .04em; color: var(--on-graphite); margin: var(--space-md) auto; padding: var(--space-md) var(--space-lg); max-width: max-content; background: var(--graphite); border-radius: var(--radius-lg); }
+    .done .lead { max-width: 44ch; margin: 0 auto var(--space-lg); }
+    .row { display: flex; gap: var(--space-md); justify-content: center; flex-wrap: wrap; }
 
     @media (max-width: 640px) {
       .grid2, .grid3, .grid4, .grid-addr, .gps { grid-template-columns: 1fr; }

@@ -4,6 +4,7 @@ import {
   Profile,
   Property,
   PropertyDimension,
+  PropertyMedia,
   ScanRequest,
   ScanStatus,
 } from '../../core/models/database.types';
@@ -11,6 +12,15 @@ import {
 /** Solicitud con la propiedad embebida (para listarlas con contexto). */
 export interface ScanRequestFull extends ScanRequest {
   properties: Property;
+}
+
+/** Vista de la visita de escaneo para el propietario (ficha de la propiedad). */
+export interface ScanVisit {
+  id: string;
+  status: ScanStatus;
+  scheduled_at: string | null;
+  /** Nombre del escáner asignado (solo legible por el propietario vía RLS). */
+  scanner: { first_name: string; last_name: string } | null;
 }
 
 /** Fila de dimensión que el escáner registra tras el escaneo. */
@@ -50,22 +60,70 @@ export class ScanService {
     if (error) throw error;
   }
 
-  /** Guarda el enlace del recorrido 3D (Matterport) de una propiedad. */
-  async saveTour(propertyId: string, embedUrl: string): Promise<void> {
-    // Sustituye el recorrido anterior, si lo hubiera.
+  /** Agenda (o reagenda) la visita: fija la fecha/hora del escaneo. */
+  async schedule(requestId: string, scheduledAt: string | null): Promise<void> {
+    const { error } = await this.sb
+      .from('scan_requests')
+      .update({ scheduled_at: scheduledAt })
+      .eq('id', requestId);
+    if (error) throw error;
+  }
+
+  /**
+   * Visita de escaneo de una propiedad, con el nombre del escáner asignado.
+   * RLS: el propietario (requested_by) puede leerla; el nombre del escáner es
+   * legible gracias a la política profiles_select_assigned_scanner.
+   */
+  async getVisitForProperty(propertyId: string): Promise<ScanVisit | null> {
+    const { data, error } = await this.sb
+      .from('scan_requests')
+      .select(
+        'id, status, scheduled_at, scanner:profiles!scan_requests_scanner_id_fkey(first_name, last_name)',
+      )
+      .eq('property_id', propertyId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return (data as ScanVisit | null) ?? null;
+  }
+
+  /** Recorridos 3D (tour_3d) de una propiedad, en orden. */
+  async listTours(propertyId: string): Promise<PropertyMedia[]> {
+    const { data, error } = await this.sb
+      .from('property_media')
+      .select('*')
+      .eq('property_id', propertyId)
+      .eq('media_type', 'tour_3d')
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as PropertyMedia[];
+  }
+
+  /**
+   * Guarda TODOS los recorridos 3D de una propiedad (delete-then-insert): el
+   * conjunto entrante reemplaza al almacenado. `urls` es la lista completa,
+   * en el orden deseado; una lista vacía deja la propiedad sin recorridos.
+   */
+  async saveTours(propertyId: string, urls: string[]): Promise<void> {
     await this.sb
       .from('property_media')
       .delete()
       .eq('property_id', propertyId)
       .eq('media_type', 'tour_3d');
 
-    const { error } = await this.sb.from('property_media').insert({
-      property_id: propertyId,
-      media_type: 'tour_3d',
-      embed_url: embedUrl,
-      sort_order: 0,
-    });
-    if (error) throw error;
+    const clean = urls.map((u) => u.trim()).filter(Boolean);
+    if (clean.length) {
+      const { error } = await this.sb.from('property_media').insert(
+        clean.map((embed_url, i) => ({
+          property_id: propertyId,
+          media_type: 'tour_3d' as const,
+          embed_url,
+          sort_order: i,
+        })),
+      );
+      if (error) throw error;
+    }
   }
 
   async listDimensions(propertyId: string): Promise<PropertyDimension[]> {

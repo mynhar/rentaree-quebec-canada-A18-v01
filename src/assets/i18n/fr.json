@@ -102,6 +102,11 @@
       "ctaExplore": "Explorer les propriétés",
       "ctaScan": "Numériser ma propriété"
     },
+    "video": {
+      "eyebrow": "Démonstration",
+      "title": "Voici une propriété, numérisée en 3D.",
+      "lead": "Un exemple de numérisation Matterport : parcourez chaque pièce et consultez ses dimensions réelles, avant même de visiter."
+    },
     "plan": {
       "salon": "Salon",
       "cuisine": "Cuisine",
@@ -209,9 +214,17 @@
     },
     "results": "{{count}} résultats",
     "view": {
+      "cards": "Cartes",
       "list": "Liste",
       "map": "Carte",
       "split": "Diviser"
+    },
+    "sort": {
+      "label": "Trier",
+      "relevant": "Plus pertinentes",
+      "recent": "Plus récentes",
+      "priceAsc": "Prix croissant",
+      "priceDesc": "Prix décroissant"
     },
     "notice": {
       "completePhone": "Ajoutez votre numéro de téléphone pour pouvoir publier des propriétés.",
@@ -366,6 +379,23 @@
         "email": "Envoyer un courriel",
         "note": "Mentionnez le dossier {{expediente}} dans votre message."
       },
+      "visit": {
+        "title": "Visite de numérisation 3D",
+        "date": "Date de la visite",
+        "scanner": "Technicien",
+        "status": "Statut",
+        "pendingDate": "À planifier",
+        "pendingScanner": "À assigner"
+      },
+      "location": {
+        "title": "Emplacement",
+        "enlarge": "Agrandir la carte",
+        "reduce": "Réduire la carte"
+      },
+      "nearby": {
+        "title": "Propriétés à proximité",
+        "more": "Voir plus"
+      },
       "edit": "Modifier"
     },
     "status": {
@@ -387,12 +417,20 @@
     "title": "Tableau du technicien",
     "heading": "Numérisations assignées",
     "lead": "Enregistrez la visite 3D et les dimensions après chaque visite.",
+    "schedule": "Visite planifiée",
+    "notScheduled": "Non planifiée",
+    "client": "Client à visiter",
+    "location": "Emplacement de la propriété",
+    "enlarge": "Agrandir la carte",
+    "reduce": "Réduire la carte",
     "loading": "Chargement des demandes…",
     "emptyTitle": "Aucune numérisation assignée",
     "emptyText": "Lorsqu'un administrateur vous assignera une visite, elle apparaîtra ici.",
     "tour": {
       "label": "Visite 3D (Matterport)",
-      "note": "Dans Matterport : Share → Embed. Collez ici l'URL du modèle."
+      "note": "Dans Matterport : Share → Embed. Collez ici l'URL du modèle. Vous pouvez en ajouter plusieurs.",
+      "add": "Ajouter",
+      "remove": "Retirer la visite"
     },
     "photos": {
       "label": "Photos de la propriété"
@@ -432,6 +470,7 @@
       "property": "Propriété",
       "status": "Statut",
       "scanner": "Technicien assigné",
+      "schedule": "Date de la visite",
       "unassigned": "— Non assigné —",
       "view": "Voir la fiche"
     },
@@ -446,6 +485,7 @@
     "errors": {
       "load": "Impossible de charger les données.",
       "assign": "Impossible d'assigner le technicien.",
+      "schedule": "Impossible de planifier la visite.",
       "role": "Impossible de modifier le rôle."
     }
   }

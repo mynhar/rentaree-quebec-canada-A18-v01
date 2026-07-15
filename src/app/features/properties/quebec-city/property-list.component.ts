@@ -17,10 +17,10 @@ import { PropertyCardComponent } from '../shared/property-card.component';
           <p class="state__sub">{{ t('property.list.emptySub') }}</p>
         </div>
       } @else {
-        <div class="grid">
+        <div class="grid" [class.grid--cards]="layout() === 'grid'">
           @for (p of properties(); track p.id) {
             <div (click)="select.emit(p.id)" (mouseenter)="hover.emit(p.id)">
-              <app-property-card [property]="p" [selected]="p.id === selectedId()" />
+              <app-property-card [property]="p" [selected]="p.id === selectedId()" [layout]="layout()" />
             </div>
           }
         </div>
@@ -30,6 +30,7 @@ import { PropertyCardComponent } from '../shared/property-card.component';
   styles: [`
     :host { display: block; }
     .grid { display: grid; gap: 12px; padding: 16px; }
+    .grid--cards { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
     .state { padding: 48px 24px; text-align: center; color: var(--ink-3); }
     .state__title { font-weight: 500; color: var(--ink); margin: 0 0 4px; }
     .state__sub { margin: 0; font-size: 14px; }
@@ -39,6 +40,8 @@ export class PropertyListComponent {
   readonly properties = input.required<PropertyCard[]>();
   readonly selectedId = input<string | null>(null);
   readonly loading = input<boolean>(false);
+  /** 'list' = filas compactas; 'grid' = cuadrícula de tarjetas. */
+  readonly layout = input<'list' | 'grid'>('list');
 
   readonly select = output<string>();
   readonly hover = output<string>();

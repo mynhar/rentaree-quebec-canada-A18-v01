@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { PropertyService, PropertyCard } from '../property.service';
 import { PropertyFilters, EMPTY_FILTERS } from '../property-filters';
@@ -8,9 +8,28 @@ import { PropertyType } from '../../../core/models/database.types';
 import { PropertyListComponent } from './property-list.component';
 import { PropertyMapComponent } from './property-map.component';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { LanguageSwitcherComponent } from '../../../core/i18n/language-switcher.component';
+import { AppHeaderComponent } from '../../../core/layout/app-header.component';
 
-type ViewMode = 'list' | 'map' | 'split';
+type ViewMode = 'tarjetas' | 'list' | 'map' | 'split';
+type SortMode = 'relevantes' | 'recientes' | 'precio-asc' | 'precio-desc';
+
+/** Distancia aproximada en km (haversine). Infinity si falta alguna coordenada. */
+function distanceKm(
+  lat1: number,
+  lng1: number,
+  lat2: number | null,
+  lng2: number | null,
+): number {
+  if (lat2 == null || lng2 == null) return Infinity;
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
 
 @Component({
   selector: 'app-quebec-city',
@@ -20,31 +39,11 @@ type ViewMode = 'list' | 'map' | 'split';
     PropertyListComponent,
     PropertyMapComponent,
     TranslocoDirective,
-    LanguageSwitcherComponent,
+    AppHeaderComponent,
   ],
   template: `
     <ng-container *transloco="let tr">
-    <header class="bar">
-      <a routerLink="/" class="mark">Rentaree<span class="mark__tick" aria-hidden="true"></span></a>
-
-      <div class="search">
-        <input class="input" type="search" [placeholder]="tr('property.search.placeholder')"
-          [value]="filters().text" (input)="onText($any($event.target).value)" />
-      </div>
-
-      <div class="bar__right">
-        <app-language-switcher />
-        @if (auth.role() === 'escaner' || auth.role() === 'administrador') {
-          <a routerLink="/escaner" class="role-link">{{ tr('nav.scans') }}</a>
-        }
-        @if (auth.role() === 'administrador') {
-          <a routerLink="/admin" class="role-link">{{ tr('nav.admin') }}</a>
-        }
-        <a routerLink="/quebec-city/nueva" class="btn btn--primary">{{ tr('nav.newProperty') }}</a>
-        <span class="user">{{ auth.profile()?.first_name }} {{ auth.profile()?.last_name }}</span>
-        <button class="btn btn--ghost" (click)="salir()">{{ tr('nav.signOut') }}</button>
-      </div>
-    </header>
+    <app-header />
 
     @if (auth.needsProfileCompletion()) {
       <div class="notice">
@@ -54,6 +53,11 @@ type ViewMode = 'list' | 'map' | 'split';
     }
 
     <div class="toolbar">
+      <div class="search">
+        <input class="input" type="search" [placeholder]="tr('property.search.placeholder')"
+          [value]="filters().text" (input)="onText($any($event.target).value)" />
+      </div>
+
       <button class="chip-btn" [class.on]="filtersOpen()" (click)="filtersOpen.set(!filtersOpen())">
         {{ tr('property.filters.button') }}
         @if (activeFilterCount() > 0) { <span class="count">{{ activeFilterCount() }}</span> }
@@ -68,7 +72,17 @@ type ViewMode = 'list' | 'map' | 'split';
         {{ loading() ? '…' : tr('property.results', { count: properties().length }) }}
       </span>
 
+      <select class="input sort" [value]="sort()"
+        (change)="sort.set($any($event.target).value)"
+        [attr.aria-label]="tr('property.sort.label')">
+        <option value="relevantes">{{ tr('property.sort.relevant') }}</option>
+        <option value="recientes">{{ tr('property.sort.recent') }}</option>
+        <option value="precio-asc">{{ tr('property.sort.priceAsc') }}</option>
+        <option value="precio-desc">{{ tr('property.sort.priceDesc') }}</option>
+      </select>
+
       <div class="seg">
+        <button [class.on]="mode() === 'tarjetas'" (click)="mode.set('tarjetas')">{{ tr('property.view.cards') }}</button>
         <button [class.on]="mode() === 'list'" (click)="mode.set('list')">{{ tr('property.view.list') }}</button>
         <button [class.on]="mode() === 'map'" (click)="mode.set('map')">{{ tr('property.view.map') }}</button>
         <button [class.on]="mode() === 'split'" (click)="mode.set('split')">{{ tr('property.view.split') }}</button>
@@ -101,20 +115,25 @@ type ViewMode = 'list' | 'map' | 'split';
     }
 
     <div class="content" [class.content--map]="mode() === 'map'" [class.content--split]="mode() === 'split'">
-      @if (mode() === 'list') {
+      @if (mode() === 'tarjetas') {
         <div class="scroll">
-          <app-property-list [properties]="properties()" [selectedId]="selectedId()"
+          <app-property-list layout="grid" [properties]="sortedProperties()" [selectedId]="selectedId()"
+            [loading]="loading()" (select)="onSelect($event)" />
+        </div>
+      } @else if (mode() === 'list') {
+        <div class="scroll">
+          <app-property-list [properties]="sortedProperties()" [selectedId]="selectedId()"
             [loading]="loading()" (select)="onSelect($event)" />
         </div>
       } @else if (mode() === 'map') {
-        <app-property-map [properties]="properties()" [center]="center()"
+        <app-property-map [properties]="sortedProperties()" [center]="center()"
           [selectedId]="selectedId()" (markerSelect)="onSelect($event)" />
       } @else {
         <div class="scroll">
-          <app-property-list [properties]="properties()" [selectedId]="selectedId()"
+          <app-property-list [properties]="sortedProperties()" [selectedId]="selectedId()"
             [loading]="loading()" (select)="onSelect($event)" />
         </div>
-        <app-property-map [properties]="properties()" [center]="center()"
+        <app-property-map [properties]="sortedProperties()" [center]="center()"
           [selectedId]="selectedId()" (markerSelect)="onSelect($event)" />
       }
     </div>
@@ -123,25 +142,21 @@ type ViewMode = 'list' | 'map' | 'split';
   styles: [`
     :host { display: flex; flex-direction: column; height: 100dvh; }
 
-    .bar { display: flex; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
-    .mark { font-family: var(--font-display); font-weight: 600; font-size: 19px; color: var(--ink); display: inline-flex; align-items: center; gap: 5px; }
-    .mark__tick { width: 15px; height: 8px; border-left: 1px solid var(--ink-3); border-right: 1px solid var(--ink-3); border-bottom: 1px solid var(--ink-3); }
-    .search { flex: 1; max-width: 420px; }
-    .bar__right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
-    .user { font-size: 14px; color: var(--ink-2); }
-    .role-link { font-size: 13.5px; font-weight: 500; color: var(--ink-2); }
-    .role-link:hover { color: var(--accent); }
+    .notice { background: var(--warn-050); color: var(--warn); padding: 10px 20px; font-size: var(--text-sm); border-bottom: 1px solid var(--line); }
+    .notice a { color: var(--warn); text-decoration: underline; margin-left: 4px; }
 
-    .notice { background: #FAEEDA; color: #8A5B00; padding: 10px 20px; font-size: 13.5px; }
-    .notice a { color: #8A5B00; text-decoration: underline; margin-left: 4px; }
-
-    .toolbar { display: flex; align-items: center; gap: 14px; padding: 10px 20px; border-bottom: 1px solid var(--line); }
+    .toolbar { display: flex; align-items: center; gap: 14px; padding: 10px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .search { flex: 1 1 220px; max-width: 420px; }
     .chip-btn { font: inherit; font-size: 13.5px; font-weight: 500; padding: 7px 13px; border: 1px solid var(--line-2); border-radius: 100px; background: var(--surface); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
     .chip-btn.on { border-color: var(--accent); color: var(--accent); }
-    .count { background: var(--accent); color: #fff; font-size: 11px; border-radius: 100px; padding: 1px 6px; }
+    .count { background: var(--accent); color: var(--accent-ink); font-size: 11px; border-radius: 100px; padding: 1px 6px; }
     .mine { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--ink-2); cursor: pointer; }
     .results { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-3); }
-    .seg { margin-left: auto; display: flex; background: var(--surface-2); border-radius: var(--radius); padding: 3px; }
+    .sort { margin-left: auto; width: auto; padding: 7px 30px 7px 12px; font-size: 13.5px;
+      appearance: none; cursor: pointer;
+      background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%), linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
+      background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
+    .seg { display: flex; background: var(--surface-2); border-radius: var(--radius); padding: 3px; }
     .seg button { border: 0; background: transparent; cursor: pointer; padding: 6px 14px; border-radius: 7px; font: inherit; font-size: 13.5px; font-weight: 500; color: var(--ink-2); }
     .seg button.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
 
@@ -149,7 +164,7 @@ type ViewMode = 'list' | 'map' | 'split';
     .filters__label { display: block; font-size: 12px; font-weight: 500; color: var(--ink-2); margin-bottom: 8px; }
     .types { display: flex; flex-wrap: wrap; gap: 7px; }
     .type-chip { font: inherit; font-size: 13px; padding: 6px 12px; border: 1px solid var(--line-2); border-radius: 100px; background: var(--surface); color: var(--ink-2); cursor: pointer; }
-    .type-chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .type-chip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
     .price { display: flex; align-items: center; gap: 8px; }
     .price .input { width: 96px; }
     .price span { color: var(--ink-3); }
@@ -171,17 +186,44 @@ type ViewMode = 'list' | 'map' | 'split';
 export class QuebecCityComponent implements OnInit {
   readonly auth = inject(AuthService);
   private readonly svc = inject(PropertyService);
-  private readonly router = inject(Router);
 
   readonly types = PROPERTY_TYPES;
 
-  readonly mode = signal<ViewMode>('list');
+  readonly mode = signal<ViewMode>('tarjetas');
   readonly filtersOpen = signal(false);
   readonly filters = signal<PropertyFilters>({ ...EMPTY_FILTERS });
   readonly properties = signal<PropertyCard[]>([]);
   readonly loading = signal(false);
   readonly selectedId = signal<string | null>(null);
   readonly center = signal<{ lat: number; lng: number }>(DEFAULT_MAP_CENTER);
+  /** True cuando la geolocalización del usuario tuvo éxito (define "relevantes"). */
+  readonly userLocated = signal(false);
+
+  /** Orden del listado (la consulta llega por 'created_at' desc = recientes). */
+  readonly sort = signal<SortMode>('relevantes');
+  readonly sortedProperties = computed(() => {
+    const rows = [...this.properties()]; // copia: Array.sort muta
+    switch (this.sort()) {
+      case 'recientes':
+        return rows; // ya vienen por fecha desc
+      case 'precio-asc':
+        return rows.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
+      case 'precio-desc':
+        return rows.sort((a, b) => (b.price ?? -Infinity) - (a.price ?? -Infinity));
+      case 'relevantes':
+      default: {
+        // Relevancia = cercanía al usuario (su zona/barrio). Sin geolocalización,
+        // se queda como "más recientes" (el orden en que ya vienen).
+        if (!this.userLocated()) return rows;
+        const c = this.center();
+        return rows.sort(
+          (a, b) =>
+            distanceKm(c.lat, c.lng, a.latitude, a.longitude) -
+            distanceKm(c.lat, c.lng, b.latitude, b.longitude),
+        );
+      }
+    }
+  });
 
   private timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -225,11 +267,6 @@ export class QuebecCityComponent implements OnInit {
     this.selectedId.set(id);
   }
 
-  async salir(): Promise<void> {
-    await this.auth.signOut();
-    void this.router.navigate(['/']);
-  }
-
   // --- Datos ---
   private schedule(): void {
     clearTimeout(this.timer);
@@ -251,7 +288,10 @@ export class QuebecCityComponent implements OnInit {
   private locateUser(): void {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => this.center.set({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (pos) => {
+        this.center.set({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        this.userLocated.set(true);
+      },
       () => {},
       { enableHighAccuracy: false, timeout: 5000 },
     );

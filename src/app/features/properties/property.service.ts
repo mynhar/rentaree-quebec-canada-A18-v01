@@ -12,10 +12,30 @@ import {
 } from '../../core/models/database.types';
 import { PropertyFilters } from './property-filters';
 
+/** Distancia aproximada en km entre dos coordenadas (fórmula haversine). */
+function distanceKm(
+  lat1: number,
+  lng1: number,
+  lat2: number | null,
+  lng2: number | null,
+): number {
+  if (lat2 == null || lng2 == null) return Infinity;
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
 export interface PropertyCardMedia {
   storage_path: string | null;
   media_type: MediaType;
   sort_order: number;
+  /** URL embebida del recorrido 3D (para extraer la miniatura de Matterport). */
+  embed_url: string | null;
 }
 
 export interface PropertyCard extends Property {
@@ -75,7 +95,7 @@ export class PropertyService {
   async search(filters: PropertyFilters, userId: string | null): Promise<PropertyCard[]> {
     let q = this.sb
       .from('properties')
-      .select('*, property_media(storage_path, media_type, sort_order)')
+      .select('*, property_media(storage_path, media_type, sort_order, embed_url)')
       .order('created_at', { ascending: false });
 
     if (filters.onlyMine && userId) {
@@ -97,6 +117,33 @@ export class PropertyService {
     const { data, error } = await q;
     if (error) throw error;
     return (data ?? []) as PropertyCard[];
+  }
+
+  /**
+   * Propiedades disponibles cercanas a una dada, ordenadas por distancia y
+   * excluyendo la propia. Si la propiedad no tiene coordenadas, devuelve las
+   * disponibles más recientes. RLS ya limita lo visible (solo 'disponible').
+   */
+  async nearby(
+    property: Pick<Property, 'id' | 'latitude' | 'longitude'>,
+    cap = 60,
+  ): Promise<PropertyCard[]> {
+    const { data, error } = await this.sb
+      .from('properties')
+      .select('*, property_media(storage_path, media_type, sort_order, embed_url)')
+      .eq('status', 'disponible')
+      .neq('id', property.id)
+      .order('created_at', { ascending: false })
+      .limit(cap);
+    if (error) throw error;
+
+    const rows = (data ?? []) as PropertyCard[];
+    const { latitude: lat, longitude: lng } = property;
+    if (lat == null || lng == null) return rows;
+    return rows
+      .map((r) => ({ r, d: distanceKm(lat, lng, r.latitude, r.longitude) }))
+      .sort((a, b) => a.d - b.d)
+      .map((x) => x.r);
   }
 
   /** URL pública de una foto almacenada en el bucket property-photos. */

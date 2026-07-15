@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ScanService, ScanRequestFull } from '../scanning/scan.service';
 import { scanStatusKey } from '../scanning/scanner-dashboard.component';
+import { AppHeaderComponent } from '../../core/layout/app-header.component';
 import { Profile, UserRole, ScanStatus } from '../../core/models/database.types';
 import { buildAddress } from '../../core/util/format';
 import { errorMessage } from '../../core/util/errors';
@@ -15,14 +16,10 @@ type Tab = 'escaneos' | 'usuarios';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [FormsModule, RouterLink, TranslocoDirective],
+  imports: [FormsModule, RouterLink, AppHeaderComponent, TranslocoDirective],
   template: `
     <ng-container *transloco="let t">
-    <header class="bar">
-      <a routerLink="/quebec-city" class="back">{{ t('nav.backToProperties') }}</a>
-      <span class="title">{{ t('admin.title') }}</span>
-      <span class="mark">Rentaree<span class="mark__tick" aria-hidden="true"></span></span>
-    </header>
+    <app-header />
 
     <main class="wrap">
       <div class="seg">
@@ -56,6 +53,7 @@ type Tab = 'escaneos' | 'usuarios';
                 <th>{{ t('admin.scans.property') }}</th>
                 <th>{{ t('admin.scans.status') }}</th>
                 <th>{{ t('admin.scans.scanner') }}</th>
+                <th>{{ t('admin.scans.schedule') }}</th>
                 <th></th>
               </tr>
             </thead>
@@ -75,6 +73,11 @@ type Tab = 'escaneos' | 'usuarios';
                         <option [value]="s.id">{{ s.first_name }} {{ s.last_name }}</option>
                       }
                     </select>
+                  </td>
+                  <td>
+                    <input class="input input--sm date" type="datetime-local"
+                      [value]="toLocalInput(r.scheduled_at)"
+                      (change)="schedule(r, $any($event.target).value)" />
                   </td>
                   <td>
                     <a class="link" [routerLink]="['/propiedad', r.property_id]">
@@ -127,37 +130,32 @@ type Tab = 'escaneos' | 'usuarios';
   `,
   styles: [`
     :host { display: block; min-height: 100dvh; }
-    .bar { display: flex; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
-    .back { font-size: 14px; color: var(--ink-2); }
-    .title { font-size: 14px; font-weight: 500; }
-    .mark { margin-left: auto; font-family: var(--font-display); font-weight: 600; font-size: 18px; display: inline-flex; align-items: center; gap: 5px; }
-    .mark__tick { width: 15px; height: 8px; border-left: 1px solid var(--ink-3); border-right: 1px solid var(--ink-3); border-bottom: 1px solid var(--ink-3); }
-
-    .wrap { max-width: 1000px; margin: 0 auto; padding: 28px 24px 80px; }
-    .seg { display: inline-flex; background: var(--surface-2); border-radius: var(--radius); padding: 3px; margin-bottom: 26px; }
-    .seg button { border: 0; background: transparent; cursor: pointer; padding: 7px 16px; border-radius: 7px; font: inherit; font-size: 13.5px; font-weight: 500; color: var(--ink-2); }
+    .wrap { max-width: 1000px; margin: 0 auto; padding: var(--space-xl) var(--space-lg) var(--space-4xl); }
+    .seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 3px; margin-bottom: var(--space-xl); }
+    .seg button { border: 0; background: transparent; cursor: pointer; padding: 7px 16px; border-radius: 4px; font: inherit; font-size: var(--text-sm); font-weight: 500; color: var(--ink-2); transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
     .seg button.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
 
-    h1 { font-size: 24px; margin-bottom: 5px; }
-    .lead { color: var(--ink-2); font-size: 14.5px; margin: 0 0 22px; }
-    .state { padding: 56px 0; text-align: center; color: var(--ink-3); }
+    h1 { font-size: var(--text-2xl); margin-bottom: 5px; }
+    .lead { color: var(--ink-2); font-size: var(--text-base); margin: 0 0 var(--space-lg); }
+    .state { padding: var(--space-2xl) 0; text-align: center; color: var(--ink-3); }
 
     .tbl { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
-    .tbl th { text-align: left; font-size: 12px; font-weight: 500; color: var(--ink-3); padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
-    .tbl td { padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
+    .tbl th { text-align: left; font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: .04em; text-transform: uppercase; font-weight: 500; color: var(--ink-3); padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+    .tbl td { padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: var(--text-base); vertical-align: middle; }
     .tbl tr:last-child td { border-bottom: 0; }
-    .mono { font-family: var(--font-mono); font-size: 12.5px; }
+    .mono { font-family: var(--font-mono); font-size: var(--text-sm); }
     .acc { color: var(--accent); }
-    .strong { font-weight: 500; }
+    .strong { font-weight: 500; color: var(--ink); }
     .muted { color: var(--ink-2); }
-    .link { font-size: 13px; }
+    .link { font-size: var(--text-sm); }
 
-    .input--sm { padding: 7px 10px; font-size: 13px; width: auto; min-width: 160px; }
-    .status { font-size: 12px; padding: 3px 9px; border-radius: 100px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
-    .status[data-s="completado"] { background: #E9F3EE; color: var(--ok); }
+    .input--sm { padding: 7px 10px; font-size: var(--text-sm); width: auto; min-width: 160px; }
+    .date { min-width: 200px; font-family: var(--font-mono); }
+    .status { font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: var(--radius-pill); background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
+    .status[data-s="completado"] { background: var(--ok-050); color: var(--ok); }
     .status[data-s="agendado"] { background: var(--accent-050); color: var(--accent); }
 
-    .msg { padding: 10px 12px; border-radius: var(--radius); font-size: 13.5px; margin-bottom: 16px; }
+    .msg { padding: 10px 12px; border-radius: var(--radius); font-size: var(--text-sm); margin-bottom: var(--space-md); }
     .msg--error { background: var(--danger-050); color: var(--danger); }
 
     @media (max-width: 760px) {
@@ -214,6 +212,27 @@ export class AdminComponent implements OnInit {
     } catch (e) {
       this.showError(e, 'admin.errors.assign');
     }
+  }
+
+  /** Agenda la fecha/hora de la visita a partir del <input datetime-local>. */
+  async schedule(r: ScanRequestFull, value: string): Promise<void> {
+    this.clearError();
+    const iso = value ? new Date(value).toISOString() : null;
+    try {
+      await this.svc.schedule(r.id, iso);
+      this.requests.set(await this.svc.listRequests());
+    } catch (e) {
+      this.showError(e, 'admin.errors.schedule');
+    }
+  }
+
+  /** ISO (UTC) -> valor local "YYYY-MM-DDTHH:mm" para el input datetime-local. */
+  toLocalInput(iso: string | null): string {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
   async changeRole(p: Profile, role: UserRole): Promise<void> {

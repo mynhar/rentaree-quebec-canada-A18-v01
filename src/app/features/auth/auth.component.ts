@@ -22,18 +22,18 @@ import { LanguageSwitcherComponent } from '../../core/i18n/language-switcher.com
           Rentaree<span class="brand__tick" aria-hidden="true"></span>
         </a>
 
-        <svg class="brand__plan" viewBox="0 0 260 200" fill="none" aria-hidden="true">
-          <rect x="16" y="24" width="200" height="150" stroke="#2A2E2A" stroke-width="2"/>
-          <line x1="128" y1="24" x2="128" y2="118" stroke="#2A2E2A" stroke-width="2"/>
-          <line x1="128" y1="118" x2="216" y2="118" stroke="#2A2E2A" stroke-width="2"/>
-          <line x1="128" y1="150" x2="128" y2="174" stroke="#2A2E2A" stroke-width="2"/>
-          <path d="M128 150 A24 24 0 0 1 152 174" stroke="#1F4E6B" stroke-width="1.5"/>
-          <line x1="16" y1="188" x2="216" y2="188" stroke="#9AA09A" stroke-width="1"/>
-          <line x1="16" y1="183" x2="16" y2="193" stroke="#9AA09A" stroke-width="1"/>
-          <line x1="216" y1="183" x2="216" y2="193" stroke="#9AA09A" stroke-width="1"/>
-          <line x1="232" y1="24" x2="232" y2="174" stroke="#9AA09A" stroke-width="1"/>
-          <line x1="227" y1="24" x2="237" y2="24" stroke="#9AA09A" stroke-width="1"/>
-          <line x1="227" y1="174" x2="237" y2="174" stroke="#9AA09A" stroke-width="1"/>
+        <svg class="brand__plan plan" viewBox="0 0 260 200" fill="none" aria-hidden="true">
+          <rect class="wall" x="16" y="24" width="200" height="150"/>
+          <line class="wall" x1="128" y1="24" x2="128" y2="118"/>
+          <line class="wall" x1="128" y1="118" x2="216" y2="118"/>
+          <line class="wall" x1="128" y1="150" x2="128" y2="174"/>
+          <path class="door" d="M128 150 A24 24 0 0 1 152 174"/>
+          <line class="tick" x1="16" y1="188" x2="216" y2="188"/>
+          <line class="tick" x1="16" y1="183" x2="16" y2="193"/>
+          <line class="tick" x1="216" y1="183" x2="216" y2="193"/>
+          <line class="tick" x1="232" y1="24" x2="232" y2="174"/>
+          <line class="tick" x1="227" y1="24" x2="237" y2="24"/>
+          <line class="tick" x1="227" y1="174" x2="237" y2="174"/>
         </svg>
 
         <div class="brand__dims">
@@ -150,100 +150,62 @@ import { LanguageSwitcherComponent } from '../../core/i18n/language-switcher.com
     </div>
   `,
   styles: [`
-    .auth {
-      min-height: 100dvh;
-      display: grid;
-      grid-template-columns: 1.05fr 1fr;
-    }
+    .auth { min-height: 100dvh; display: grid; grid-template-columns: 1.05fr 1fr; }
+
+    /* Panel de marca — banda grafito (misma firma que la tarjeta de plano de la landing) */
     .brand {
-      background: var(--surface-2);
-      border-right: 1px solid var(--line);
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 22px;
+      background: var(--graphite); color: var(--on-graphite);
+      padding: var(--space-2xl); display: flex; flex-direction: column;
+      justify-content: center; gap: var(--space-lg);
     }
     .brand__mark {
-      font-family: var(--font-display);
-      font-weight: 600;
-      font-size: 22px;
-      color: var(--ink);
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+      font-family: var(--font-display); font-weight: 600; font-size: 22px;
+      color: var(--on-graphite); display: inline-flex; align-items: center; gap: 4px;
     }
     .brand__tick {
-      width: 18px; height: 10px;
-      border-left: 1px solid var(--ink-3);
-      border-right: 1px solid var(--ink-3);
-      border-bottom: 1px solid var(--ink-3);
+      width: 18px; height: 10px; border: 1px solid var(--on-graphite-2); border-top: 0;
     }
     .brand__plan { width: min(340px, 100%); height: auto; }
+    .plan .wall { stroke: var(--on-graphite); stroke-width: 1.5; }
+    .plan .door { stroke: var(--accent); stroke-width: 1.5; }
+    .plan .tick { stroke: var(--graphite-line); stroke-width: 1; }
     .brand__dims {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--ink-2);
-      letter-spacing: .02em;
-      display: flex; gap: 8px; align-items: center;
+      font-family: var(--font-mono); font-size: var(--text-xs); color: var(--on-graphite);
+      letter-spacing: .04em; text-transform: uppercase;
+      display: flex; gap: var(--space-sm); align-items: center;
     }
-    .brand__dims .sep { color: var(--ink-3); }
-    .brand__note {
-      max-width: 30ch;
-      color: var(--ink-2);
-      font-size: 14px;
-      margin: 0;
-      line-height: 1.55;
-    }
-    .panel {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 24px;
-    }
+    .brand__dims .sep { color: var(--on-graphite-2); }
+    .brand__note { max-width: 30ch; color: var(--on-graphite-2); font-size: var(--text-sm); margin: 0; line-height: 1.55; }
+
+    /* Panel del formulario */
+    .panel { display: flex; align-items: center; justify-content: center; padding: var(--space-xl) var(--space-lg); }
     .panel__inner { width: 100%; max-width: 380px; }
-    .panel__lang { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+    .panel__lang { display: flex; justify-content: flex-end; margin-bottom: var(--space-sm); }
     .seg {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      background: var(--surface-2);
-      border-radius: var(--radius);
-      padding: 3px;
-      margin-bottom: 22px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      background: var(--surface-2); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 3px; margin-bottom: var(--space-lg);
     }
     .seg button {
       border: 0; background: transparent; cursor: pointer;
-      padding: 9px; border-radius: 8px;
-      font: inherit; font-weight: 500; color: var(--ink-2);
-      transition: background .15s ease, color .15s ease;
+      padding: 9px; border-radius: 4px; font: inherit; font-weight: 500; color: var(--ink-2);
+      transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
     }
     .seg button.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
-    .google { margin-bottom: 18px; }
-    .divider {
-      display: flex; align-items: center; gap: 12px;
-      color: var(--ink-3); font-size: 13px;
-      margin-bottom: 18px;
-    }
-    .divider::before, .divider::after {
-      content: ""; flex: 1; height: 1px; background: var(--line);
-    }
-    .field { margin-bottom: 14px; }
-    .field label {
-      display: block; margin-bottom: 6px;
-      font-size: 13px; font-weight: 500; color: var(--ink-2);
-    }
-    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .hint { display: block; margin-top: 5px; font-size: 12px; color: var(--danger); }
+    .google { margin-bottom: var(--space-md); }
+    .divider { display: flex; align-items: center; gap: var(--space-md); color: var(--ink-3); font-size: var(--text-sm); margin-bottom: var(--space-md); }
+    .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+    .field { margin-bottom: var(--space-md); }
+    .field label { display: block; margin-bottom: 6px; font-size: var(--text-sm); font-weight: 500; color: var(--ink-2); }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+    .hint { display: block; margin-top: 5px; font-size: var(--text-xs); color: var(--danger); }
     .btn--primary.btn--block { margin-top: 6px; }
-    .msg { margin: 16px 0 0; padding: 10px 12px; border-radius: var(--radius); font-size: 13.5px; }
+    .msg { margin: var(--space-md) 0 0; padding: 10px 12px; border-radius: var(--radius); font-size: var(--text-sm); }
     .msg--error { background: var(--danger-050); color: var(--danger); }
-    .msg--ok { background: #E9F3EE; color: var(--ok); }
+    .msg--ok { background: var(--ok-050); color: var(--ok); }
     @media (max-width: 760px) {
       .auth { grid-template-columns: 1fr; }
-      .brand {
-        border-right: 0; border-bottom: 1px solid var(--line);
-        padding: 28px 24px; gap: 16px;
-      }
+      .brand { padding: var(--space-lg); gap: var(--space-md); }
       .brand__plan { display: none; }
     }
   `],

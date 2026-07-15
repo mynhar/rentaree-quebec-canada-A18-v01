@@ -29,20 +29,22 @@ const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
     .pm-map { position: absolute; inset: 0; }
     .pm-pin {
       font-family: var(--font-mono); font-size: 12px; font-weight: 700;
-      color: var(--ink); background: #fff;
+      color: var(--ink); background: var(--surface);
       border: 1px solid var(--line-2); border-radius: 100px;
       padding: 4px 9px; cursor: pointer; white-space: nowrap;
-      box-shadow: 0 1px 3px rgba(24,27,24,.18);
+      box-shadow: var(--shadow);
       transition: background .12s ease, color .12s ease, border-color .12s ease;
     }
     .pm-pin:hover { border-color: var(--ink-3); }
-    .pm-pin--sel { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .pm-pin--sel { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   `],
 })
 export class PropertyMapComponent implements AfterViewInit, OnDestroy {
   readonly properties = input<PropertyCard[]>([]);
   readonly center = input<{ lat: number; lng: number }>(DEFAULT_MAP_CENTER);
   readonly selectedId = input<string | null>(null);
+  /** Añade el control de pantalla completa de MapLibre. */
+  readonly fullscreen = input<boolean>(false);
   readonly markerSelect = output<string>();
 
   @ViewChild('map', { static: true }) private mapEl!: ElementRef<HTMLDivElement>;
@@ -50,6 +52,8 @@ export class PropertyMapComponent implements AfterViewInit, OnDestroy {
   private map?: maplibregl.Map;
   private readonly markers = new Map<string, maplibregl.Marker>();
   private ready = false;
+  /** Redibuja el mapa cuando su contenedor cambia de tamaño (p. ej. al ampliar). */
+  private resizeObs?: ResizeObserver;
 
   constructor() {
     effect(() => {
@@ -72,13 +76,21 @@ export class PropertyMapComponent implements AfterViewInit, OnDestroy {
       zoom: 11,
     });
     this.map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    if (this.fullscreen()) {
+      this.map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+    }
     this.map.on('load', () => {
       this.ready = true;
       this.renderMarkers(this.properties());
     });
+
+    // El contenedor puede cambiar de alto (botón "ampliar", split, etc.).
+    this.resizeObs = new ResizeObserver(() => this.map?.resize());
+    this.resizeObs.observe(this.mapEl.nativeElement);
   }
 
   ngOnDestroy(): void {
+    this.resizeObs?.disconnect();
     this.markers.forEach((m) => m.remove());
     this.markers.clear();
     this.map?.remove();

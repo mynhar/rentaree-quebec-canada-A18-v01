@@ -1,0 +1,78 @@
+/* Hallmark · Rentaree design tokens — theme: Cobalt (modern-minimal)
+ * Portable export. La fuente de verdad viva es src/styles.css :root
+ * (cargado globalmente por angular.json). Este archivo existe para portar
+ * el sistema a otros proyectos o herramientas. Mantener en sincronía.
+ */
+:root {
+  /* Superficies */
+  --paper:      oklch(98.3% 0.005 250);
+  --surface:    oklch(99.4% 0.003 250);
+  --surface-2:  oklch(96.2% 0.006 252);
+
+  /* Tinta */
+  --ink:    oklch(25% 0.020 258);
+  --ink-2:  oklch(39% 0.018 257);
+  --ink-3:  oklch(52% 0.015 256);
+
+  /* Líneas */
+  --line:    oklch(92% 0.006 255);
+  --line-2:  oklch(86.5% 0.008 255);
+
+  /* Grafito (banda oscura + tarjeta de plano) */
+  --graphite:      oklch(22% 0.016 260);
+  --graphite-2:    oklch(27% 0.016 260);
+  --on-graphite:   oklch(91% 0.010 255);
+  --on-graphite-2: oklch(70% 0.014 255);
+  --graphite-line: oklch(38% 0.014 258);
+
+  /* Acento — una señal cobalto (L55% = AA sobre botón primario) */
+  --accent:        oklch(55% 0.200 256);
+  --accent-strong: oklch(47% 0.185 256);
+  --accent-050:    oklch(95% 0.030 256);
+  --accent-ink:    #ffffff;
+
+  /* Estados */
+  --danger:      oklch(52% 0.160 25);
+  --danger-050:  oklch(95% 0.028 25);
+  --ok:          oklch(53% 0.110 158);
+  --ok-050:      oklch(95% 0.030 158);
+  --warn:        oklch(46% 0.090 72);
+  --warn-050:    oklch(94% 0.050 82);
+  --overlay:     oklch(25% 0.02 258 / 0.62);
+
+  /* Forma */
+  --radius:      6px;
+  --radius-lg:   10px;
+  --radius-pill: 100px;
+  --shadow:      0 1px 2px oklch(25% 0.02 258 / 0.05);
+  --shadow-lift: 0 10px 30px -18px oklch(25% 0.02 258 / 0.28);
+
+  /* Espaciado (4pt) */
+  --space-xs: 4px;  --space-sm: 8px;  --space-md: 16px; --space-lg: 24px;
+  --space-xl: 40px; --space-2xl: 64px;
+  --space-3xl: clamp(64px, 9vw, 112px);
+  --space-4xl: clamp(88px, 12vw, 160px);
+
+  /* Tipografía — escala */
+  --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.9375rem;
+  --text-lg: 1.0625rem; --text-xl: 1.25rem; --text-2xl: 1.5rem;
+  --text-3xl: 2rem; --text-4xl: 2.5rem;
+  --text-display:   clamp(2.6rem, 4.4vw + 0.6rem, 4.5rem);
+  --text-display-s: clamp(1.9rem, 3vw + 0.5rem, 3rem);
+
+  /* Tipografía — familias */
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body:    'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    'Space Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Layout */
+  --page-max: 1200px;
+  --page-gutter: clamp(20px, 5vw, 72px);
+  --rule-hair: 1px;
+
+  /* Movimiento */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:     cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 150ms; --dur: 240ms; --dur-slow: 600ms;
+}

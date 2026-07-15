@@ -102,6 +102,11 @@
       "ctaExplore": "Explore properties",
       "ctaScan": "Scan my property"
     },
+    "video": {
+      "eyebrow": "Demo",
+      "title": "A property, scanned in 3D.",
+      "lead": "An example Matterport scan: walk through every room and check its real dimensions before you even visit."
+    },
     "plan": {
       "salon": "Living room",
       "cuisine": "Kitchen",
@@ -209,9 +214,17 @@
     },
     "results": "{{count}} results",
     "view": {
+      "cards": "Cards",
       "list": "List",
       "map": "Map",
       "split": "Split"
+    },
+    "sort": {
+      "label": "Sort",
+      "relevant": "Most relevant",
+      "recent": "Most recent",
+      "priceAsc": "Price: low to high",
+      "priceDesc": "Price: high to low"
     },
     "notice": {
       "completePhone": "Add your phone number so you can publish properties.",
@@ -366,6 +379,23 @@
         "email": "Send email",
         "note": "Mention file {{expediente}} when you write."
       },
+      "visit": {
+        "title": "3D scan visit",
+        "date": "Visit date",
+        "scanner": "Technician",
+        "status": "Status",
+        "pendingDate": "To be scheduled",
+        "pendingScanner": "To be assigned"
+      },
+      "location": {
+        "title": "Location",
+        "enlarge": "Enlarge map",
+        "reduce": "Reduce map"
+      },
+      "nearby": {
+        "title": "Nearby properties",
+        "more": "Show more"
+      },
       "edit": "Edit"
     },
     "status": {
@@ -387,12 +417,20 @@
     "title": "Scanner dashboard",
     "heading": "Assigned scans",
     "lead": "Record the 3D tour and the dimensions after each visit.",
+    "schedule": "Scheduled visit",
+    "notScheduled": "Not scheduled",
+    "client": "Client to visit",
+    "location": "Property location",
+    "enlarge": "Enlarge map",
+    "reduce": "Reduce map",
     "loading": "Loading requests…",
     "emptyTitle": "No scans assigned",
     "emptyText": "When an administrator assigns you a visit, it will appear here.",
     "tour": {
       "label": "3D tour (Matterport)",
-      "note": "In Matterport: Share → Embed. Paste the model URL here."
+      "note": "In Matterport: Share → Embed. Paste the model URL here. You can add several.",
+      "add": "Add",
+      "remove": "Remove tour"
     },
     "photos": {
       "label": "Property photos"
@@ -432,6 +470,7 @@
       "property": "Property",
       "status": "Status",
       "scanner": "Assigned scanner",
+      "schedule": "Visit date",
       "unassigned": "— Unassigned —",
       "view": "View listing"
     },
@@ -446,6 +485,7 @@
     "errors": {
       "load": "The data could not be loaded.",
       "assign": "The scanner could not be assigned.",
+      "schedule": "The visit could not be scheduled.",
       "role": "The role could not be changed."
     }
   }

@@ -151,21 +151,21 @@ interface RejectedFile {
       font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
       padding: 3px 6px; border-radius: 4px;
     }
-    .cover { left: 6px; background: var(--accent); color: #fff; }
-    .saved { right: 6px; background: rgba(24, 27, 24, .62); color: #fff; }
+    .cover { left: 6px; background: var(--accent); color: var(--accent-ink); }
+    .saved { right: 6px; background: var(--overlay); color: var(--accent-ink); }
 
     .thumb__bar {
       position: absolute; inset: auto 0 0 0;
       display: flex; justify-content: center; gap: 2px; padding: 4px;
-      background: linear-gradient(transparent, rgba(24, 27, 24, .72));
-      opacity: 0; transition: opacity .12s ease;
+      background: linear-gradient(transparent, var(--overlay));
+      opacity: 0; transition: opacity var(--dur-fast) var(--ease-out);
     }
     .thumb:hover .thumb__bar, .thumb:focus-within .thumb__bar { opacity: 1; }
 
     .icon {
       width: 26px; height: 26px; display: grid; place-items: center;
-      font: inherit; font-size: 15px; line-height: 1; color: #fff;
-      background: rgba(24, 27, 24, .55); border: 0; border-radius: 6px; cursor: pointer;
+      font: inherit; font-size: 15px; line-height: 1; color: var(--accent-ink);
+      background: var(--overlay); border: 0; border-radius: 6px; cursor: pointer;
     }
     .icon:hover:not(:disabled) { background: var(--ink); }
     .icon:disabled { opacity: .35; cursor: not-allowed; }

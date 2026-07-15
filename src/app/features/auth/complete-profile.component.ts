@@ -37,27 +37,17 @@ import { AuthService } from '../../core/auth/auth.service';
     </main>
   `,
   styles: [`
-    .wrap {
-      min-height: 100dvh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
+    .wrap { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: var(--space-lg); }
     .card {
-      width: 100%;
-      max-width: 400px;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow);
-      padding: 32px;
+      width: 100%; max-width: 400px;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: var(--space-xl);
     }
-    h1 { font-size: 22px; margin-bottom: 8px; }
-    .lead { color: var(--ink-2); font-size: 14px; margin: 0 0 22px; line-height: 1.55; }
-    .field { margin-bottom: 16px; }
-    .field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; color: var(--ink-2); }
-    .hint { display: block; margin-top: 5px; font-size: 12px; color: var(--danger); }
+    h1 { font-size: var(--text-2xl); margin-bottom: var(--space-sm); }
+    .lead { color: var(--ink-2); font-size: var(--text-sm); margin: 0 0 var(--space-lg); line-height: 1.55; }
+    .field { margin-bottom: var(--space-md); }
+    .field label { display: block; margin-bottom: 6px; font-size: var(--text-sm); font-weight: 500; color: var(--ink-2); }
+    .hint { display: block; margin-top: 5px; font-size: var(--text-xs); color: var(--danger); }
   `],
 })
 export class CompleteProfileComponent {

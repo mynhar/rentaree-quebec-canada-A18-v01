@@ -6,20 +6,40 @@ import { PropertyCard, PropertyService, canEditProperty } from '../property.serv
 import { propertyTypeKey } from '../../../core/config/constants';
 import { buildAddress, formatCAD } from '../../../core/util/format';
 
+/**
+ * Miniatura pública de un tour Matterport a partir de su URL de modelo
+ * (…/show/?m=MODELID). Matterport expone un endpoint público de thumbnail.
+ * Devuelve null si la URL no es de Matterport o no trae el id del modelo.
+ */
+function matterportThumb(embedUrl: string | null | undefined): string | null {
+  if (!embedUrl) return null;
+  try {
+    const u = new URL(embedUrl);
+    if (!u.hostname.endsWith('matterport.com')) return null;
+    const id = u.searchParams.get('m');
+    return id
+      ? `https://my.matterport.com/api/v1/player/models/${id}/thumb?width=720&dimensions=1x1`
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 @Component({
   selector: 'app-property-card',
   standalone: true,
   imports: [RouterLink, TranslocoDirective],
   template: `
-    <article class="card" [class.card--sel]="selected()" *transloco="let t">
+    <article class="card" [class.card--sel]="selected()"
+      [class.card--grid]="layout() === 'grid'" *transloco="let t">
       <div class="thumb">
-        @if (photo()) {
-          <img [src]="photo()" alt="" loading="lazy" />
+        @if (thumb()) {
+          <img [src]="thumb()" alt="" loading="lazy" />
         } @else {
           <svg viewBox="0 0 120 90" fill="none" aria-hidden="true" class="thumb__plan">
-            <rect x="12" y="12" width="96" height="66" stroke="#B4B7B1" stroke-width="1.5"/>
-            <line x1="66" y1="12" x2="66" y2="48" stroke="#B4B7B1" stroke-width="1.5"/>
-            <line x1="66" y1="48" x2="108" y2="48" stroke="#B4B7B1" stroke-width="1.5"/>
+            <rect x="12" y="12" width="96" height="66" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="66" y1="12" x2="66" y2="48" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="66" y1="48" x2="108" y2="48" stroke="currentColor" stroke-width="1.5"/>
           </svg>
         }
         <span class="price">{{ price() }}<span>{{ t('property.perMonth') }}</span></span>
@@ -67,8 +87,15 @@ import { buildAddress, formatCAD } from '../../../core/util/format';
       cursor: pointer;
       transition: border-color .15s ease, box-shadow .15s ease;
     }
-    .card:hover { border-color: var(--line-2); }
+    .card:hover { border-color: var(--line-2); box-shadow: var(--shadow); }
     .card--sel { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-050); }
+
+    /* Vista de tarjetas: vertical, foto grande arriba */
+    .card--grid { grid-template-columns: 1fr; gap: 0; }
+    .card--grid .thumb { aspect-ratio: 16 / 10; }
+    .card--grid .thumb__plan { width: 45%; }
+    .card--grid .body { padding: 12px 6px 4px; }
+    .card--grid .price { font-size: 13px; }
 
     .thumb {
       position: relative;
@@ -79,7 +106,7 @@ import { buildAddress, formatCAD } from '../../../core/util/format';
       display: flex; align-items: center; justify-content: center;
     }
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .thumb__plan { width: 70%; }
+    .thumb__plan { width: 70%; color: var(--line-2); }
     .price {
       position: absolute; left: 6px; bottom: 6px;
       font-family: var(--font-mono); font-size: 12px; font-weight: 700;
@@ -109,6 +136,8 @@ export class PropertyCardComponent {
 
   readonly property = input.required<PropertyCard>();
   readonly selected = input<boolean>(false);
+  /** 'list' = tarjeta horizontal compacta; 'grid' = tarjeta vertical con foto grande. */
+  readonly layout = input<'list' | 'grid'>('list');
 
   /** Espejo de la política RLS: solo decide si se ve el enlace de editar. */
   readonly canEdit = computed(() =>
@@ -121,6 +150,17 @@ export class PropertyCardComponent {
       .sort((a, b) => a.sort_order - b.sort_order);
     return media.length ? this.svc.photoUrl(media[0].storage_path) : null;
   });
+
+  /** URL embebida del recorrido 3D (Matterport), si existe. */
+  readonly tourEmbed = computed(
+    () => (this.property().property_media ?? []).find((m) => m.media_type === 'tour_3d')?.embed_url ?? null,
+  );
+
+  /**
+   * Imagen de la tarjeta: la foto de la propiedad si la hay; si no, la miniatura
+   * pública del tour 3D de Matterport; si tampoco, null (se dibuja el plano).
+   */
+  readonly thumb = computed(() => this.photo() ?? matterportThumb(this.tourEmbed()));
 
   readonly price = computed(() => formatCAD(this.property().price));
   readonly address = computed(() => buildAddress(this.property()));
